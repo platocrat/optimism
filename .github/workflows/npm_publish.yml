@@ -111,6 +111,11 @@ jobs:
       - name: Configure NPM
         run: |
           echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
+
+      - name: Run NPM whoami
+        run: |
+          npm whoami
+
       - name: Publish
         run: yarn run release:patch
         env:
