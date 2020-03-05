@@ -113,13 +113,14 @@ jobs:
           echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
 
       - name: Run NPM whoami
-        run: |
-          npm whoami
+        run: npm whoami
+        env:
+          NPM_TOKEN: ${{secrets.NPM_TOKEN}}
 
       - name: Publish
         run: yarn run release:patch
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NODE_AUTH_TOKEN}}
+          NPM_TOKEN: ${{secrets.NPM_TOKEN}}
 
       - name: Push changes
         uses: ad-m/github-push-action@master
