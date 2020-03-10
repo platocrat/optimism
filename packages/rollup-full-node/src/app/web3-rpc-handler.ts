@@ -383,7 +383,6 @@ export class DefaultWeb3Handler implements Web3Handler, FullnodeHandler {
           internalTx
         )
       } catch (e) {
-        log.info(`hello there`)
         logError(
           log,
           `Error executing transaction!\n\nIncrementing nonce for sender (${ovmTx.from} and returning failed tx hash. Ovm tx hash: ${ovmTxHash}, internal hash: ${internalTxHash}.`,
@@ -475,7 +474,7 @@ export class DefaultWeb3Handler implements Web3Handler, FullnodeHandler {
     const ovmTo = ovmTx.to === null ? ZERO_ADDRESS : ovmTx.to
     // Construct the raw transaction calldata
     // TODO: Check nonce
-    const internalCalldata = this.generateUnsignedCallCalldata(
+    const internalCalldata = this.generateUnsignedTransactionCalldata(
       this.getTimestamp(),
       0,
       ovmTo,
@@ -528,6 +527,22 @@ export class DefaultWeb3Handler implements Web3Handler, FullnodeHandler {
     }
     return this.executionManager.interface.functions[
       'executeUnsignedEOACall'
+    ].encode([timestamp, queueOrigin, ovmEntrypoint, callBytes, fromAddress])
+  }
+
+  private generateUnsignedTransactionCalldata(
+    timestamp: number,
+    queueOrigin: number,
+    ovmEntrypoint: string,
+    callBytes: string,
+    fromAddress: string
+  ): string {
+    // Update the ovmEntrypoint to be the ZERO_ADDRESS if this is a contract creation
+    if (ovmEntrypoint === null || ovmEntrypoint === undefined) {
+      ovmEntrypoint = ZERO_ADDRESS
+    }
+    return this.executionManager.interface.functions[
+      'executeUnsignedEOATransaction'
     ].encode([timestamp, queueOrigin, ovmEntrypoint, callBytes, fromAddress])
   }
 
