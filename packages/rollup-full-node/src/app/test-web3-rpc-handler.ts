@@ -92,7 +92,7 @@ export class TestWeb3Handler extends DefaultWeb3Handler {
    */
   private increaseTimestamp(increaseSeconds: any): void {
     try {
-      const increaseNumber = parseInt(remove0x(increaseSeconds), 16)
+      const increaseNumber = increaseSeconds //parseInt(remove0x(increaseSeconds), 16)
       if (increaseNumber < 0) {
         throw Error('invalid param')
       }
