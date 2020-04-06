@@ -1,4 +1,4 @@
-const HDWalletProvider = require("truffle-hdwallet-provider");
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 const ProviderWrapper = require("@eth-optimism/ovm-truffle-provider-wrapper");
 const mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
 

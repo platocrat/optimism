@@ -71,9 +71,11 @@ export class TestWeb3Handler extends DefaultWeb3Handler {
         return this.context.provider.send(Web3RpcMethods.mine, params)
       case Web3RpcMethods.snapshot:
         this.assertParameters(params, 0)
+        log.error("snapshot")
         return this.snapshot()
       case Web3RpcMethods.revert:
         this.assertParameters(params, 1)
+        log.error("revert")
         return this.revert(params[0])
       default:
         return super.handleRequest(method, params)
@@ -124,9 +126,17 @@ export class TestWeb3Handler extends DefaultWeb3Handler {
    * @param The snapshot id of the snapshot to restore
    */
   private async revert(snapShotId: string): Promise<string> {
-    const response = this.context.provider.send(Web3RpcMethods.revert, [
+    const ovmContractNonce = await this.context.executionManager.getOvmContractNonce(
+      "0x627306090abaB3A6e1400e9345bC60c78a8BEf57"
+    )
+    log.error(ovmContractNonce)
+    const response = await this.context.provider.send(Web3RpcMethods.revert, [
       snapShotId,
     ])
+    const ovmContractNonce2 = await this.context.executionManager.getOvmContractNonce(
+      "0x627306090abaB3A6e1400e9345bC60c78a8BEf57"
+    )
+    log.error(ovmContractNonce2)
     this.timestampIncreaseSeconds = this.timestampIncreaseSnapshots[snapShotId]
     return response
   }

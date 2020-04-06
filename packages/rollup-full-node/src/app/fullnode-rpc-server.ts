@@ -85,6 +85,9 @@ export class FullnodeRpcServer extends ExpressHttpServer {
         return buildJsonRpcError('INVALID_REQUEST', null)
       }
 
+      if(request.method ==  'eth_getTransactionCount') {
+        log.error("Outer eth_getTransactionCount")
+      }
       const result = await this.fullnodeHandler.handleRequest(
         request.method,
         request.params

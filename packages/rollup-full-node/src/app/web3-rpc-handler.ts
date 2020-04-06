@@ -138,6 +138,7 @@ export class DefaultWeb3Handler implements Web3Handler, FullnodeHandler {
         response = await this.getLogs([0])
         break
       case Web3RpcMethods.getTransactionCount:
+        log.error("getTransactionCount!!!!")
         args = this.assertParameters(params, 2, latestBlock)
         response = await this.getTransactionCount(args[0], args[1])
         break
@@ -391,7 +392,7 @@ export class DefaultWeb3Handler implements Web3Handler, FullnodeHandler {
       address
     )
     const response = add0x(ovmContractNonce.toNumber().toString(16))
-    log.debug(
+    log.error(
       `Received transaction count for Address [${address}], block: [${defaultBlock}]: [${response}].`
     )
     return response
@@ -604,6 +605,9 @@ export class DefaultWeb3Handler implements Web3Handler, FullnodeHandler {
     const expectedNonce = (
       await this.context.executionManager.getOvmContractNonce(ovmTx.from)
     ).toNumber()
+    log.error(`nonce: ${ovmTx.nonce}`)
+    log.error(`ovmTx.none: ${ovmTx.nonce}`)
+    log.error(`expectedNonce: ${expectedNonce}`)
     if (expectedNonce !== ovmTx.nonce) {
       throw new Error(
         `Incorrect nonce! Expected nonce: ${expectedNonce} but received nonce: ${ovmTx.nonce}`
