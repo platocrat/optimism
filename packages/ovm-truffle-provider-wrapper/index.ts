@@ -38,7 +38,7 @@ const startLocalNode = () => {
  * Wraps the provided Truffle provider so it will work with the OVM.
  * @returns The wrapped provider.
  */
-const wrapProvider = (provider: any) => {
+export const wrapProvider = (provider: any) => {
   if (typeof provider !== 'object' || !provider['sendAsync']) {
     throw Error(
       'Invalid provider. Exepcted provider to conform to Truffle provider interface!'
@@ -64,16 +64,11 @@ let nodeStarted = false
  * local OVM node for the duration of the current process.
  * @returns The wrapped provider.
  */
-const wrapProviderAndStartLocalNode = (provider: any) => {
+export const wrapProviderAndStartLocalNode = (provider: any) => {
   if (!nodeStarted) {
     nodeStarted = true
     startLocalNode()
   }
 
   return wrapProvider(provider)
-}
-
-module.exports = {
-  wrapProvider,
-  wrapProviderAndStartLocalNode,
 }
