@@ -18,6 +18,7 @@ import {
   RevertError,
   UnsupportedMethodError,
 } from '../types'
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 const log: Logger = getLogger('rollup-fullnode-rpc-server')
 
@@ -39,9 +40,16 @@ export class FullnodeRpcServer extends ExpressHttpServer {
     fullnodeHandler: FullnodeHandler,
     hostname: string,
     port: number,
-    middleware?: any[]
+    wsPort?: number,
+    middleware?: any[],
   ) {
-    super(port, hostname, middleware)
+    let wsMiddleware
+
+    if (wsPort) {
+      // wsMiddleware = [createProxyMiddleware('http://echo.websocket.org', { ws: true })]
+      wsMiddleware = []
+    }
+    super(port, hostname, wsPort, middleware, wsMiddleware)
     this.fullnodeHandler = fullnodeHandler
   }
 

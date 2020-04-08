@@ -22,9 +22,10 @@ export class JsonRpcServer extends ExpressHttpServer implements RpcServer {
     private methods: Record<string, Function> = {},
     hostname: string,
     port: number,
+    wsPort?: number,
     middleware?: any[]
   ) {
-    super(port, hostname, middleware)
+    super(port, hostname, wsPort, middleware)
   }
 
   /**

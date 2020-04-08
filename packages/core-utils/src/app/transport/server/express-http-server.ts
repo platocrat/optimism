@@ -3,11 +3,13 @@ import bodyParser = require('body-parser')
 
 /* Internal Imports */
 import { HttpServer } from '../../../types'
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 /**
  * HTTP server that uses Express under the hood.
  */
 export class ExpressHttpServer implements HttpServer {
+  protected wsApp
   protected app
   private listening = false
   private server
@@ -20,18 +22,29 @@ export class ExpressHttpServer implements HttpServer {
   constructor(
     private port: number,
     private hostname: string,
-    middleware?: Function[]
+    private wsPort?: number,
+    middleware?: Function[] = [],
+    wsMiddleware?: Function[] = [],
   ) {
     const express = require('express')
     this.app = express()
-    // By default use bodyParser
     this.app.use(bodyParser.json({ limit: '50mb' }))
-    // Add any other middleware desired
-    if (typeof middleware !== 'undefined') {
-      for (const m of middleware) {
-        this.app.use(m())
-      }
+    middleware.map(this.app.use)
+    if(wsPort) {
+      this.wsApp = express()
+      // wsMiddleware.map(m => {
+      //   this.wsApp.use(m)
+      // })
+      console.log("---")
+      console.log(wsPort)
+      const wsProxy =  createProxyMiddleware('http://echo.websocket.org',        { ws: true })
+      this.wsApp.use(wsProxy)
     }
+    // if (typeof middleware !== 'undefined') {
+    //   for (const m of middleware) {
+    //     this.app.use(m())
+    //   }
+    // }
     this.initRoutes()
   }
 
@@ -51,12 +64,24 @@ export class ExpressHttpServer implements HttpServer {
       return
     }
 
-    return new Promise<void>((resolve, reject) => {
+    const appStarted = new Promise<void>((resolve, reject) => {
       this.server = this.app.listen(this.port, this.hostname, () => {
-        this.listening = true
         resolve()
       })
     })
+
+    const wsStarted = new Promise<void>((resolve, reject) => {
+      if(this.wsApp) {
+        console.log(`starting wsApp on port ${this.wsPort}`)
+        this.wsServer = this.wsApp.listen(this.wsPort, this.hostname, () => {
+          console.log("started wsApp")
+          resolve()
+        })
+      }
+    })
+
+    await Promise.all([appStarted, wsStarted])
+    this.listening = true
   }
 
   /**

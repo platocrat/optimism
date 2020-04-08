@@ -34,7 +34,7 @@ export class AggregatorRpcServer extends ExpressHttpServer {
     port: number,
     middleware?: any[]
   ) {
-    super(port, hostname, middleware)
+    super(port, hostname, null, middleware)
     this.aggregator = aggregator
   }
 

@@ -5,6 +5,10 @@ import {
   JSONRPC_ERRORS,
 } from '@eth-optimism/core-utils/build/src'
 import { AxiosResponse } from 'axios'
+import {w3cwebsocket as WebSocket} from 'websocket'
+import WSP from 'wspromisify'
+import express from 'express'
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 /* Internal Imports */
 import { FullnodeRpcServer } from '../../src/app'
@@ -14,6 +18,7 @@ import {
   UnsupportedMethodError,
 } from '../../src/types'
 import { should } from '../setup'
+global["WebSocket"] = WebSocket
 
 const log = getLogger('fullnode-rpc-server', true)
 
@@ -79,7 +84,7 @@ const getBadPayloads = () => {
 }
 
 const host = '0.0.0.0'
-const port = 9999
+let port = 9999
 
 describe('FullnodeHandler RPC Server', () => {
   const fullnodeHandler: FullnodeHandler = new DummyFullnodeHandler()
@@ -100,6 +105,82 @@ describe('FullnodeHandler RPC Server', () => {
     if (!!fullnodeRpcServer) {
       fullnodeRpcServer.close()
     }
+  })
+
+  describe('websocket requests', () => {
+    it.only('should work for valid requests & methods', async () => {
+      port = 10000
+      const wsPort = 10001
+      fullnodeRpcServer = new FullnodeRpcServer(fullnodeHandler, host, port, wsPort, [])
+
+      fullnodeRpcServer.listen()
+
+      baseUrl = `http://${host}:${port}`
+      // const ws = new WSP({
+      //   url: `ws://${host}:${wsPort}/`,
+      // })
+      //
+//       const wsProxy = createProxyMiddleware('ws://echo.websocket.org');
+//
+// const app = express();
+// app.use(wsProxy);
+//
+// let server
+//  await new Promise<void>((resolve, reject) => {
+//   server = app.listen(10002, async () => {
+//   console.log("listening")
+//   resolve()
+// })
+// })
+//   server.on('upgrade', wsProxy.upgrade);
+//       console.log(`Connecting to: ws://localhost:${wsPort}/`)
+const wsProxy = createProxyMiddleware('/', {
+  target: 'http://echo.websocket.org',
+  // pathRewrite: {
+  //  '^/websocket' : '/socket',        // rewrite path.
+  //  '^/removepath' : ''               // remove path.
+  // },
+  changeOrigin: true, // for vhosted sites, changes host header to match to target's host
+  ws: true, // enable websocket proxy
+  logLevel: 'debug',
+});
+
+const app = express();
+app.use('/', express.static(__dirname)); // demo page
+app.use(wsProxy); // add the proxy to express
+
+const server = app.listen(3000);
+server.on('upgrade', wsProxy.upgrade); // optional: upgrade externally
+      const socket = new WebSocket('ws://localhost:10002');
+      socket.onmessage = function (msg) {console.log(msg)};
+      setTimeout(() => {
+         socket.send('hello world');
+      }, 1000);
+      // const ws = new WSP({
+      //   url: `ws://localhost:10002`,
+      // })
+      // const responseData = await ws.send({catSaid: 'Meow!'})
+      // console.log(responseData)
+      // console.log("test")
+    //   const results: AxiosResponse[] = await Promise.all(
+    //     Array.from(defaultSupportedMethods).map((x) =>
+    //       request(client, { id: 1, jsonrpc: '2.0', method: x })
+    //     )
+    //   )
+    //
+    //   results.forEach((r) => {
+    //     r.status.should.equal(200)
+    //
+    //     r.data.should.haveOwnProperty('id')
+    //     r.data['id'].should.equal(1)
+    //
+    //     r.data.should.haveOwnProperty('jsonrpc')
+    //     r.data['jsonrpc'].should.equal('2.0')
+    //
+    //     r.data.should.haveOwnProperty('result')
+    //     r.data['result'].should.equal(dummyResponse)
+    //   })
+    })
   })
 
   describe('single requests', () => {
