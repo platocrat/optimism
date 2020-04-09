@@ -13,6 +13,8 @@ export class ExpressHttpServer implements HttpServer {
   protected app
   private listening = false
   private server
+  private onWsUpgrade
+  protected wsServer
 
   /**
    * Creates the server.
@@ -23,29 +25,27 @@ export class ExpressHttpServer implements HttpServer {
     private port: number,
     private hostname: string,
     private wsPort?: number,
-    middleware?: Function[] = [],
-    wsMiddleware?: Function[] = [],
+    middleware: Function[] = [],
+    wsMiddleware: Function[] = [],
   ) {
     const express = require('express')
     this.app = express()
     this.app.use(bodyParser.json({ limit: '50mb' }))
-    middleware.map(this.app.use)
+    middleware.map((m) => this.app.use(m))
+
     if(wsPort) {
       this.wsApp = express()
-      // wsMiddleware.map(m => {
-      //   this.wsApp.use(m)
-      // })
-      console.log("---")
-      console.log(wsPort)
-      const wsProxy =  createProxyMiddleware('http://echo.websocket.org',        { ws: true })
-      this.wsApp.use(wsProxy)
+      wsMiddleware.map(m => this.wsApp.use(m))
     }
-    // if (typeof middleware !== 'undefined') {
-    //   for (const m of middleware) {
-    //     this.app.use(m())
-    //   }
-    // }
     this.initRoutes()
+  }
+
+  /**
+   * Initializes any app routes.
+   * App has no routes by default.
+   */
+  protected setOnWsUpgrade(onWsUpgrade: Function): void {
+    this.onWsUpgrade =  onWsUpgrade
   }
 
   /**
@@ -72,11 +72,10 @@ export class ExpressHttpServer implements HttpServer {
 
     const wsStarted = new Promise<void>((resolve, reject) => {
       if(this.wsApp) {
-        console.log(`starting wsApp on port ${this.wsPort}`)
         this.wsServer = this.wsApp.listen(this.wsPort, this.hostname, () => {
-          console.log("started wsApp")
           resolve()
         })
+        this.wsServer.on('upgrade', this.onWsUpgrade)
       }
     })
 
