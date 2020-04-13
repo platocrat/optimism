@@ -40,9 +40,11 @@
     "dotenv": "^8.2.0",
     "ethers": "^4.0.37",
     "express": "^4.17.1",
+    "express-ws": "^4.0.0",
     "memdown": "^4.0.0",
     "ts-md5": "^1.2.4",
-    "uuid": "^3.3.3"
+    "uuid": "^3.3.3",
+    "ws": "^7.2.3"
   },
   "devDependencies": {
     "@types/abstract-leveldown": "^5.0.1",

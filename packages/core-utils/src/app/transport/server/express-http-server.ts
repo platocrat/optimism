@@ -4,6 +4,7 @@ import bodyParser = require('body-parser')
 /* Internal Imports */
 import { HttpServer } from '../../../types'
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import * as WebSocket from 'ws';
 
 /**
  * HTTP server that uses Express under the hood.
@@ -11,6 +12,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 export class ExpressHttpServer implements HttpServer {
   protected wsApp
   protected app
+  protected webSocket
   private listening = false
   private server
   private onWsUpgrade
@@ -30,22 +32,16 @@ export class ExpressHttpServer implements HttpServer {
   ) {
     const express = require('express')
     this.app = express()
+    require('express-ws')(this.app)
     this.app.use(bodyParser.json({ limit: '50mb' }))
     middleware.map((m) => this.app.use(m))
 
-    if(wsPort) {
+    // if(wsPort) {
       this.wsApp = express()
       wsMiddleware.map(m => this.wsApp.use(m))
-    }
+      this.webSocket = new WebSocket.Server({ server: this.wsApp });
+    // }
     this.initRoutes()
-  }
-
-  /**
-   * Initializes any app routes.
-   * App has no routes by default.
-   */
-  protected setOnWsUpgrade(onWsUpgrade: Function): void {
-    this.onWsUpgrade =  onWsUpgrade
   }
 
   /**
@@ -71,11 +67,11 @@ export class ExpressHttpServer implements HttpServer {
     })
 
     const wsStarted = new Promise<void>((resolve, reject) => {
-      if(this.wsApp) {
+      if(this.wsPort) {
         this.wsServer = this.wsApp.listen(this.wsPort, this.hostname, () => {
+          console.log(`started ws app on port ${this.wsPort}`)
           resolve()
         })
-        this.wsServer.on('upgrade', this.onWsUpgrade)
       }
     })
 

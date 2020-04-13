@@ -20,6 +20,7 @@ import {
 } from '../types'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import express from 'express'
+import * as WebSocket from 'ws';
 
 const log: Logger = getLogger('rollup-fullnode-rpc-server')
 
@@ -47,25 +48,15 @@ export class FullnodeRpcServer extends ExpressHttpServer {
     let wsProxy
     let wsMiddleware
 
-    if (wsPort) {
-      wsProxy = createProxyMiddleware('http://echo.websocket.org', {
-        changeOrigin: true,
-        ws: true,
-        logLevel: null,
-      })
-      wsMiddleware = [wsProxy]
-
-      // const app = express()
-      // app.use('/', express.static(__dirname)) // demo page
-      // app.use(wsProxy) // add the proxy to express
-      //
-      // const server = app.listen(wsPort)
-      // server.on('upgrade', wsProxy.upgrade) // optional: upgrade externally
-    }
+    // if (wsPort) {
+    //   wsProxy = createProxyMiddleware('http://echo.websocket.org', {
+    //     changeOrigin: true,
+    //     ws: true,
+    //     logLevel: null,
+    //   })
+    //   wsMiddleware = [wsProxy]
+    // }
     super(port, hostname, wsPort, middleware, wsMiddleware)
-    if (wsPort) {
-      this.setOnWsUpgrade(wsProxy.upgrade)
-    }
 
     this.fullnodeHandler = fullnodeHandler
   }
@@ -77,8 +68,27 @@ export class FullnodeRpcServer extends ExpressHttpServer {
     this.app.post('/', async (req, res) => {
       return res.json(await this.handleRequest(req))
     })
+    this.app.ws('/', (ws, req) => {
+      ws.on('message', (msg) => {
+        console.log(msg)
+        this.handleMessage(ws, JSON.parse(msg))
+      });
+    })
+
+    // this.webSocket.on('connection', (ws: WebSocket) => {
+    //   this.webSocket.on('message', (message: string) => {
+    //     console.log("here")
+    //   })
+    // })
   }
 
+
+  protected async handleMessage(
+    ws: any,
+    req: any,
+  ) {
+    this.fullnodeHandler.handleMessage(ws, req.method, req.params)
+  }
   /**
    * Handles the provided request, returning the appropriate response object
    * @param req The request to handle

@@ -27,6 +27,13 @@ const dummyResponse: string = 'Dummy Response =D'
 const unsupportedMethod: string = 'unsupported!'
 const revertMethod: string = 'revert!'
 class DummyFullnodeHandler implements FullnodeHandler {
+  public async handleMessage(
+    webSocket: any,
+    method: string,
+    params: string[]
+  ) {
+    webSocket.send(`echoing ${method}`)
+  }
   public async handleRequest(
     method: string,
     params: string[]
@@ -122,20 +129,15 @@ describe('FullnodeHandler RPC Server', () => {
       fullnodeRpcServer.listen()
 
       baseUrl = `http://${host}:${port}`
-      const socket = new WebSocket(`ws://localhost:${wsPort}`)
+      const socket = new WebSocket(`ws://localhost:${port}`)
       socket.onmessage = function(msg) {
-        console.log(msg.data)
+        console.log(`onmessage: ${msg.data}`)
       }
       await new Promise((resolve, reject) => {
         setTimeout(() => {
-          socket.send('hello world')
+          socket.send(JSON.stringify({method: "test", params: [1,2,3]}))
           resolve()
         }, 1000)
-      })
-      await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          resolve('done')
-        }, 2000)
       })
     })
   })

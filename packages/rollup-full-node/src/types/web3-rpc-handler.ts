@@ -2,6 +2,7 @@
 import { Address } from '@eth-optimism/rollup-core'
 
 export interface FullnodeHandler {
+  handleMessage(ws: any, method: string, params: any[])
   handleRequest(method: string, params: any[]): Promise<string>
 }
 

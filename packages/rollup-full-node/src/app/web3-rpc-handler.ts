@@ -86,6 +86,13 @@ export class DefaultWeb3Handler
     return this.context.l2ToL1MessagePasser.address
   }
 
+  public async handleMessage(
+    webSocket: any,
+    method: string,
+    params: string[]
+  ) {
+  }
+
   /**
    * Handles generic Web3 requests.
    *
