@@ -70,16 +70,9 @@ export class FullnodeRpcServer extends ExpressHttpServer {
     })
     this.app.ws('/', (ws, req) => {
       ws.on('message', (msg) => {
-        console.log(msg)
         this.handleMessage(ws, JSON.parse(msg))
       });
     })
-
-    // this.webSocket.on('connection', (ws: WebSocket) => {
-    //   this.webSocket.on('message', (message: string) => {
-    //     console.log("here")
-    //   })
-    // })
   }
 
 

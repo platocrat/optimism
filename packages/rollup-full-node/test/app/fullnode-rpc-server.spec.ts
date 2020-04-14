@@ -5,8 +5,7 @@ import {
   JSONRPC_ERRORS,
 } from '@eth-optimism/core-utils/build/src'
 import { AxiosResponse } from 'axios'
-import { w3cwebsocket as WebSocket } from 'websocket'
-import WSP from 'wspromisify'
+import WebSocket from 'ws'
 import express from 'express'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 
@@ -32,7 +31,7 @@ class DummyFullnodeHandler implements FullnodeHandler {
     method: string,
     params: string[]
   ) {
-    webSocket.send(`echoing ${method}`)
+    webSocket.send(dummyResponse)
   }
   public async handleRequest(
     method: string,
@@ -130,14 +129,14 @@ describe('FullnodeHandler RPC Server', () => {
 
       baseUrl = `http://${host}:${port}`
       const socket = new WebSocket(`ws://localhost:${port}`)
-      socket.onmessage = function(msg) {
-        console.log(`onmessage: ${msg.data}`)
-      }
-      await new Promise((resolve, reject) => {
-        setTimeout(() => {
+      socket.on("open", () =>
           socket.send(JSON.stringify({method: "test", params: [1,2,3]}))
+      );
+      await new Promise((resolve) => {
+        socket.onmessage = (message) => {
+          message.data.should.eq(dummyResponse)
           resolve()
-        }, 1000)
+        }
       })
     })
   })
