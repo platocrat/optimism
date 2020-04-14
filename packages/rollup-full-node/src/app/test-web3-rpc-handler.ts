@@ -61,6 +61,7 @@ export class TestWeb3Handler extends DefaultWeb3Handler {
    * Override to add some test RPC methods.
    */
   public async handleRequest(method: string, params: any[]): Promise<string> {
+    console.log([method, params])
     switch (method) {
       case Web3RpcMethods.increaseTimestamp:
         this.assertParameters(params, 1)

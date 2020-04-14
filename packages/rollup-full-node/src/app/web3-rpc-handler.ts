@@ -91,6 +91,7 @@ export class DefaultWeb3Handler
     method: string,
     params: string[]
   ) {
+    webSocket.send("")
   }
 
   /**

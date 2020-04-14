@@ -8,6 +8,7 @@ import {
   hexStrToBuf,
   TestUtils,
   hexStrToNumber,
+  sleep,
 } from '@eth-optimism/core-utils'
 import { ethers, ContractFactory } from 'ethers'
 import { getWallets, deployContract } from 'ethereum-waffle'
@@ -21,6 +22,7 @@ import {
 } from '../../src'
 import * as SimpleStorage from '../contracts/build/untranspiled/SimpleStorage.json'
 import * as EmptyContract from '../contracts/build/untranspiled/EmptyContract.json'
+import WebSocket from 'ws'
 
 const log = getLogger('test-web3-handler', true)
 
@@ -206,6 +208,39 @@ describe('TestHandler', () => {
       TestUtils.assertThrowsAsync(async () =>
         httpProvider.getCode(emptyContract.address, curentBlockNumber - 1)
       )
+    })
+  })
+  describe('WebSocket requests', () => {
+    let testRpcServer
+    let httpProvider
+    let wallet
+
+    beforeEach(async () => {
+      testRpcServer = new FullnodeRpcServer(testHandler, host, port)
+      testRpcServer.listen()
+      httpProvider = new ethers.providers.JsonRpcProvider(baseUrl)
+      wallet = getWallets(httpProvider)[0]
+    })
+    describe('the eth_subscribe endpoint', async () => {
+      it.only('should subscribe to new blocks', async () => {
+        await sleep(1000)
+        const socket = new WebSocket(`http://${host}:${port}`)
+        socket.on("open", () =>
+            socket.send(JSON.stringify({
+              "jsonrpc":"2.0",
+              "id": 1,
+              "method": "eth_subscribe",
+              "params": ["newHeads"],
+            }))
+        );
+        await httpProvider.send('evm_mine', [])
+        await new Promise((resolve) => {
+          socket.onmessage = (message) => {
+            message.data.should.eq("")
+            resolve()
+          }
+        })
+      })
     })
   })
 })

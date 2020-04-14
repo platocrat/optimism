@@ -114,7 +114,7 @@ describe('FullnodeHandler RPC Server', () => {
   })
 
   describe('websocket requests', () => {
-    it.only('should work for valid requests & methods', async () => {
+    it('should work for valid requests & methods', async () => {
       port = 10000
       const wsPort = 10001
       fullnodeRpcServer = new FullnodeRpcServer(
