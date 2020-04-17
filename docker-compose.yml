@@ -8,7 +8,7 @@ services:
        - l1-node-data:/mnt/l1-node:rw
        - l2-node-data:/mnt/l2-node:rw
     depends_on:
-      - geth_l2
+      - openethereum_l2
 #      - geth_l1
     build:
       context: .
@@ -36,14 +36,14 @@ services:
       - L2_WALLET_PRIVATE_KEY
       - L2_WALLET_MNEMONIC
       - L2_WALLET_PRIVATE_KEY_PATH=/mnt/l2-node/private_key.txt
-      - L2_NODE_WEB3_URL=http://geth_l2:9545/
+      - L2_NODE_WEB3_URL=http://openethereum_l2:9545/
 #      - LOCAL_L2_NODE_PERSISTENT_DB_PATH=/mnt/l2-node/
 
-  geth_l2:
+  openethereum_l2:
     volumes:
        - l2-node-data:/mnt/l2-node/l2:rw
     build:
-      context: docker/geth
+      context: docker/openethereum
       dockerfile: Dockerfile
     environment:
       - CLEAR_DATA_KEY=3
