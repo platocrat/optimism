@@ -193,6 +193,7 @@ const deployL2ToL1MessageReceiver = async (
 
   let contract: Contract
   try {
+    log.info(`Wallet address ${wallet.address}`)
     contract = await deployContract(
       wallet,
       L2ToL1MessageReceiverContractDefinition,
