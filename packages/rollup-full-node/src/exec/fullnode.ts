@@ -52,7 +52,7 @@ export interface FullnodeContext {
 export const runFullnode = async (
   testFullnode: boolean = false
 ): Promise<FullnodeContext> => {
-  initializeDBPaths(testFullnode)
+  initializeDBPaths(true)
 
   let provider: JsonRpcProvider
   // TODO Get these from config
@@ -68,6 +68,8 @@ export const runFullnode = async (
 
   log.info(`Starting L2 fullnode in ${testFullnode ? 'TEST' : 'LIVE'} mode`)
 
+  log.info('L2 node web3 url!')
+  log.info(Environment.l2NodeWeb3Url())
   if (Environment.l2NodeWeb3Url()) {
     log.info(`Connecting to L2 web3 URL: ${Environment.l2NodeWeb3Url()}`)
     provider = new JsonRpcProvider(Environment.l2NodeWeb3Url())
@@ -83,7 +85,7 @@ export const runFullnode = async (
     [cors]
   )
 
-  const db: DB = getDB(testFullnode)
+  const db: DB = getDB(true)
 
   const l1ToL2TransactionProcessor: L1ToL2TransactionProcessor = await L1ToL2TransactionProcessor.create(
     db,

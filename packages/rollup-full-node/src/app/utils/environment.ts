@@ -39,7 +39,7 @@ export class Environment {
   }
 
   // L2 Config
-  public static l2NodeWeb3Url(defaultValue?: string): string {
+  public static l2NodeWeb3Url(defaultValue: string = 'http://localhost:9545'): string {
     return process.env.L2_NODE_WEB3_URL || defaultValue
   }
   public static l2WalletPrivateKey(defaultValue?: string): string {

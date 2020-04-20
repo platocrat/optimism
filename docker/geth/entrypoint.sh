@@ -87,5 +87,9 @@ fi
 echo "Starting Geth..."
 ## Command to kick off geth
 # geth --datadir $VOLUME_PATH --syncmode 'full' --rpc --rpcaddr $HOSTNAME  --rpcvhosts=* --rpcapi 'eth,net' --rpcport $PORT --networkid $NETWORK_ID --nodiscover --nousb --allow-insecure-unlock -unlock `cat $SEALER_ADDRESS_PATH` --password /dev/null --gasprice '1' --mine
-geth --dev --datadir $VOLUME_PATH --rpc --rpcaddr $HOSTNAME --rpcvhosts=* --rpcapi 'eth,net' --rpcport $PORT --networkid $NETWORK_ID --nousb --targetgaslimit '9000000000000'
-# geth --dev --datadir /testing --rpc --rpcaddr 0.0.0.0  --rpcvhosts=* --rpcapi 'eth,net' --rpcport 9545 --networkid 108 --nodiscover --nousb
+# geth --dev --datadir $VOLUME_PATH --rpc --rpcaddr $HOSTNAME --rpcvhosts=* --rpcapi 'eth,net' --rpcport $PORT --networkid $NETWORK_ID --nousb --targetgaslimit '9000000000000'
+
+# USED FOR TESTING
+# geth --datadir /testing --nousb --verbosity 0 init /etc/genesis.json 2> /dev/null;
+# geth --dev --datadir /testing --rpc --rpcaddr 0.0.0.0  --rpcvhosts=* --rpcapi 'eth,net' --rpcport 9545 --networkid 108 --nodiscover --nousb --config /etc/geth-config.toml --targetgaslimit '9000000000000' --verbosity 5 console
+geth --dev --datadir /testing --rpc --rpcaddr 0.0.0.0  --rpcvhosts=* --rpcport 9545 --networkid 108
