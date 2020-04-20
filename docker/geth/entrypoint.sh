@@ -74,7 +74,7 @@ if [ ! -f $SETUP_RUN_PATH ]; then
 
   generate_geneisis `cat $SEALER_ADDRESS_PATH` `cat $ADDRESS_PATH`
 
-  geth --datadir $VOLUME_PATH --nousb --verbosity 0 init $GENESIS_PATH 2> /dev/null;
+  # geth --datadir $VOLUME_PATH --nousb --verbosity 0 init $GENESIS_PATH 2> /dev/null;
   echo "Ran Setup" > $SETUP_RUN_PATH
 
   echo "Setup Complete"
@@ -86,4 +86,6 @@ fi
 
 echo "Starting Geth..."
 ## Command to kick off geth
-geth --datadir $VOLUME_PATH --syncmode 'full' --rpc --rpcaddr $HOSTNAME  --rpcvhosts=* --rpcapi 'eth,net' --rpcport $PORT --networkid $NETWORK_ID --nodiscover --nousb --allow-insecure-unlock -unlock `cat $SEALER_ADDRESS_PATH` --password /dev/null --gasprice '1' --mine
+# geth --datadir $VOLUME_PATH --syncmode 'full' --rpc --rpcaddr $HOSTNAME  --rpcvhosts=* --rpcapi 'eth,net' --rpcport $PORT --networkid $NETWORK_ID --nodiscover --nousb --allow-insecure-unlock -unlock `cat $SEALER_ADDRESS_PATH` --password /dev/null --gasprice '1' --mine
+geth --dev --datadir $VOLUME_PATH --rpc --rpcaddr $HOSTNAME --rpcvhosts=* --rpcapi 'eth,net' --rpcport $PORT --networkid $NETWORK_ID --nousb --targetgaslimit '9000000000000'
+# geth --dev --datadir /testing --rpc --rpcaddr 0.0.0.0  --rpcvhosts=* --rpcapi 'eth,net' --rpcport 9545 --networkid 108 --nodiscover --nousb
