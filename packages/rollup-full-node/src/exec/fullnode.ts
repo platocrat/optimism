@@ -32,6 +32,7 @@ import {
   Web3Handler,
 } from '../types'
 import { DefaultL2ToL1MessageSubmitter } from '../app/message-submitter'
+import { beginSpam } from './fullnode-spammer'
 
 const log: Logger = getLogger('rollup-fullnode')
 
@@ -107,6 +108,9 @@ export const runFullnode = async (
 
   const baseUrl = `http://${Environment.l2RpcServerHost()}:${port}`
   log.info(`Listening at ${baseUrl}`)
+
+  // Begin spamming the crap out of our fullnode
+  beginSpam()
 
   return {
     fullnodeHandler,
