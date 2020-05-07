@@ -9,6 +9,7 @@ import { TransactionReceipt, JsonRpcProvider } from 'ethers/providers'
 import * as ethereumjsAbi from 'ethereumjs-abi'
 
 /* Contract Imports */
+import * as StateManager from '../../build/contracts/StateManager.json'
 import * as ExecutionManager from '../../build/contracts/ExecutionManager.json'
 import * as SimpleStorage from '../../build/contracts/SimpleStorage.json'
 
@@ -94,7 +95,10 @@ describe('SimpleStorage', () => {
       const value = '01'.repeat(32)
       const reciept = await setStorage(slot, value)
       const innerCallData: string = add0x(`${getStorageMethodId}${slot}`)
-      const nonce = await executionManager.getOvmContractNonce(wallet.address)
+      const stateManagerAddress = await executionManager.getStateManagerAddress()
+      console.log(stateManagerAddress)
+      const stateManager = new Contract(stateManagerAddress, StateManager.abi, wallet)
+      const nonce = await stateManager.getOvmContractNonce(wallet.address)
       const transaction = {
         nonce,
         gasLimit: GAS_LIMIT,

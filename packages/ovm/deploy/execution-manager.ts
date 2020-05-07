@@ -25,6 +25,8 @@ const executionManagerDeploymentFunction = async (
   )
 
   console.log(`Execution Manager deployed to ${executionManager.address}!\n\n`)
+  const stateManagerAddress = await executionManager.getStateManagerAddress()
+  console.log(stateManagerAddress)
 
   return executionManager.address
 }

@@ -92,7 +92,7 @@ describe('SimpleStorage', () => {
     })
   })
 
-  describe('getStorage', async () => {
+  describe.only('getStorage', async () => {
     it('correctly loads a value after we store it', async () => {
       // Create the variables we will use for set & get storage
       const slot = '99'.repeat(32)
@@ -138,6 +138,7 @@ describe('SimpleStorage', () => {
         data: add0x(callData),
         gasLimit,
       })
+
       result.should.equal(add0x(value))
     })
   })
