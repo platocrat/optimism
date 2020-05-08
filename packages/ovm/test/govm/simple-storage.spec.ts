@@ -90,13 +90,12 @@ describe('SimpleStorage', () => {
   })
 
   describe('getStorage', async () => {
-    it('correctly loads a value after we store it', async () => {
+    it.only('correctly loads a value after we store it', async () => {
       const slot = '99'.repeat(32)
       const value = '01'.repeat(32)
       const reciept = await setStorage(slot, value)
       const innerCallData: string = add0x(`${getStorageMethodId}${slot}`)
       const stateManagerAddress = await executionManager.getStateManagerAddress()
-      console.log(stateManagerAddress)
       const stateManager = new Contract(stateManagerAddress, StateManager.abi, wallet)
       const nonce = await stateManager.getOvmContractNonce(wallet.address)
       const transaction = {
@@ -110,18 +109,89 @@ describe('SimpleStorage', () => {
       }
       const signedMessage = await wallet.sign(transaction)
       const [v, r, s] = ethers.utils.RLP.decode(signedMessage).slice(-3)
-      const callData = getUnsignedTransactionCalldata(
-        executionManager,
-        'executeEOACall',
-        [0, 0, transaction.nonce, transaction.to, transaction.data, v, r, s]
-      )
+      // const callData = getUnsignedTransactionCalldata(
+      //   executionManager,
+      //   'executeEOACall',
+      //   [0, 0, transaction.nonce, transaction.to, transaction.data, v, r, s]
+      // )
+      //
+      // const result = await executionManager.provider.call({
+      //   to: executionManager.address,
+      //   data: add0x(callData),
+      //   gasLimit: 6_700_000,
+      // })
+      // Fails with:
+      // AssertionError: expected '0x08c379a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002054696d657374616d70206d7573742062652067726561746572207468616e2030' to equal '0x0101010101010101010101010101010101010101010101010101010101010101'
+      // + expected - actual
+      //
+      // -0x08c379a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002054696d657374616d70206d7573742062652067726561746572207468616e2030
+      // +0x0101010101010101010101010101010101010101010101010101010101010101
 
-      const result = await executionManager.provider.call({
-        to: executionManager.address,
-        data: add0x(callData),
-        gasLimit: 6_700_000,
-      })
+      const executionManager2Abi = [
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_timestamp",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_queueOrigin",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_nonce",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_ovmEntrypoint",
+                    "type": "address"
+                },
+                {
+                    "internalType": "bytes",
+                    "name": "_callBytes",
+                    "type": "bytes"
+                },
+                {
+                    "internalType": "uint8",
+                    "name": "_v",
+                    "type": "uint8"
+                },
+                {
+                    "internalType": "bytes32",
+                    "name": "_r",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "bytes32",
+                    "name": "_s",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "executeEOACall",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "pure",
+            "type": "function"
+        }
+      ]
+      const executionManager2 = new Contract(
+        executionManager.address,
+        ["function executeEOACall(uint256,uint256,uint256,address,bytes,uint8,bytes32,bytes32) constant"],
+        wallet
+
+      )
+      const result = executionManager2.executeEOACall(
+        0, 0, transaction.nonce, transaction.to, transaction.data, v, r, s
+      )
       result.should.equal(add0x(value))
+      // Fails with
+      //
+      // AssertionError: expected {} to equal '0x0101010101010101010101010101010101010101010101010101010101010101'
     })
   })
 })

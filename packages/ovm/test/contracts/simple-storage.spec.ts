@@ -92,7 +92,7 @@ describe('SimpleStorage', () => {
     })
   })
 
-  describe.only('getStorage', async () => {
+  describe('getStorage', async () => {
     it('correctly loads a value after we store it', async () => {
       // Create the variables we will use for set & get storage
       const slot = '99'.repeat(32)
