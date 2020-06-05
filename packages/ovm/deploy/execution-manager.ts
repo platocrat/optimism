@@ -1,6 +1,7 @@
 /* External Imports */
 import { deploy, deployContract } from '@eth-optimism/core-utils'
 import { Wallet } from 'ethers'
+import { Provider } from 'ethers/providers'
 
 /* Internal Imports */
 import { deploySafetyChecker } from './safety-checker'
@@ -9,7 +10,8 @@ import { resolve } from 'path'
 import { GAS_LIMIT, DEFAULT_OPCODE_WHITELIST_MASK } from '../src/app'
 
 const executionManagerDeploymentFunction = async (
-  wallet: Wallet
+  wallet: Wallet,
+  provider: Provider
 ): Promise<string> => {
   console.log(`\nDeploying ExecutionManager!\n`)
 
