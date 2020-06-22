@@ -6,7 +6,7 @@ pragma solidity ^0.5.0;
  * 1. It uses only whitelisted opcodes
  * 2. All CALLs are to the Execution Manager and have no value set (no ETH sent)
  */
-contract SafetyChecker {
+contract OldSafetyChecker {
     uint256 public opcodeWhitelistMask;
     address public executionManagerAddress;
 

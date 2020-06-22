@@ -45,6 +45,8 @@ describe('Safety Checker', () => {
     )
   })
 
+  console.log(DEFAULT_OPCODE_WHITELIST_MASK, executionManagerAddress)
+
   describe('isBytecodeSafe()', async () => {
     describe('Empty case', () => {
       it('should work for empty case', async () => {
@@ -56,6 +58,7 @@ describe('Safety Checker', () => {
     describe('Single op-code cases', async () => {
       it('should correctly classify non-whitelisted', async () => {
         for (const opcode of DEFAULT_UNSAFE_OPCODES) {
+          console.log(`0x${opcode.code.toString('hex')}`);
           const res: boolean = await safetyChecker.isBytecodeSafe(
             `0x${opcode.code.toString('hex')}`
           )
