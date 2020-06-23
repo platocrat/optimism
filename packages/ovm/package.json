@@ -17,7 +17,7 @@
     "clean": "rimraf build/",
     "deploy:execution-manager": "yarn build && node ./build/deploy/execution-manager.js",
     "deploy:safety-checker": "yarn build && node ./build/deploy/safety-checker.js",
-    "womp": "mocha --require ts-node/register 'test/contracts/safety-checker.spec.ts' --timeout 8000 --exit"
+    "womp": "mocha --require ts-node/register 'test/contracts/safety-checker.spec.ts' --timeout 20000 --exit"
   },
   "keywords": [
     "optimistic",
