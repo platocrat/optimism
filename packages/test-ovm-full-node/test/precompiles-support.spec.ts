@@ -26,7 +26,7 @@ describe('Precompiles', () => {
     precompiles = await deployContract(wallet, Precompiles, [])
   })
 
-  it('should correctly ecrecover signer address', async () => {
+  it.only('should correctly ecrecover signer address', async () => {
     const message = '0xdeadbeef'
     const hashedMessage = keccak256(message)
     const { v, r, s } = ecsign(

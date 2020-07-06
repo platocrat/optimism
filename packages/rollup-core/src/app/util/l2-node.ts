@@ -80,6 +80,8 @@ function deployLocalL2Node(): JsonRpcProvider {
     port: Environment.localL2NodePort(),
     gasLimit: GAS_LIMIT,
     allowUnlimitedContractSize: true,
+    debug: true,
+    logger: console
   }
   const persistedGanacheDbPath = Environment.localL2NodePersistentDbPath()
   if (!!persistedGanacheDbPath) {
