@@ -575,25 +575,25 @@ export class TranspilerImpl implements Transpiler {
         Opcode.isPUSHOpcode(bytecode[index + 1].opcode) &&
         bytecode[index + 3].opcode === Opcode.CODECOPY
       ) {
-        let offsetForCODECOPY: number
-        let lengthforCODECOPY: number
+        let indexOfPUSHOffset: number
+        let indexOfPUSHLength: number
         if (bytecode[index+2].opcode === Opcode.SWAP2) {
-          // then stack would be [first input stack val, first pushed val, second pushed val]
-          offsetForCODECOPY = new BigNum(
-            op.consumedBytes
-          ).toNumber()
-          lengthforCODECOPY = new BigNum(
-            bytecode[index + 1].consumedBytes
-          ).toNumber()
+            // then stack would be [first input stack val, first pushed val, second pushed val]
+            indexOfPUSHOffset = index
+            indexOfPUSHLength = index + 1
         } else {
-          // we assume it's a DUP or PUSH, then the val is [whatever, second pushed val, first pushed val]
-          offsetForCODECOPY = new BigNum(
-            bytecode[index + 1].consumedBytes
-          ).toNumber()
-          lengthforCODECOPY = new BigNum(
-            op.consumedBytes
-          ).toNumber() 
+          // then stack would be [first input stack val, first pushed val, second pushed val]
+          // if so, the stack is [whatever was PUSHed or DUPed, second pushed val, first pushed val]
+          indexOfPUSHOffset = index + 1
+          indexOfPUSHLength = index
         }
+
+        const offsetForCODECOPY: number = new BigNum(
+          bytecode[indexOfPUSHOffset].consumedBytes
+        ).toNumber()
+        const lengthforCODECOPY: number = new BigNum(
+          bytecode[indexOfPUSHLength].consumedBytes
+        ).toNumber()
 
         const constantStart: number = offsetForCODECOPY
         const constantEnd: number = constantStart + lengthforCODECOPY
@@ -627,7 +627,7 @@ export class TranspilerImpl implements Transpiler {
             16
           )} which produced this value: ${bufToHexString(theConstant)}`
         )
-        taggedBytecode[index] = {
+        taggedBytecode[indexOfPUSHOffset] = {
           opcode: op.opcode,
           consumedBytes: op.consumedBytes,
           tag: {
