@@ -30,9 +30,12 @@ import {
   ErroredTranspilation,
   TaggedTranspilationResult,
   JumpReplacementResult,
+  SuccessfulTranspilation,
 } from '../../types/transpiler'
 import { accountForJumps } from './jump-replacement'
 import { isTaggedWithReason } from './helpers'
+import { OOGResult } from 'ethereumjs-vm/dist/evm/evm'
+import { stripAuxData } from './util'
 
 const log = getLogger('transpiler-impl')
 const statsLog = getLogger('transpiler-stats')
@@ -70,6 +73,8 @@ export class TranspilerImpl implements Transpiler {
     originalDeployedBytecodeSize: number = deployedBytecode.length
   ): TranspilationResult {
     const errors: TranspilationError[] = []
+
+    log.debug(`we linked baby`)
 
     log.debug(
       `transpiling raw full bytecode: ${bufToHexString(
@@ -135,15 +140,9 @@ export class TranspilerImpl implements Transpiler {
       errors
     )
 
-    let constantsUsedByDeployedBytecode: EVMBytecode
-    let deployedBytecodeWithoutConstants: EVMBytecode
-    ;[
-      deployedBytecodeWithoutConstants,
-      constantsUsedByDeployedBytecode,
-    ] = this.splitCodeAndConstants(taggedDeployedEVMBytecode)
-
-    const deployedBytecodeTranspilationResult: TaggedTranspilationResult = this.transpileBytecodePreservingTags(
-      deployedBytecodeWithoutConstants
+    const deployedBytecodeTranspilationResult: TaggedTranspilationResult = this.transpileBytecodePreservingConstants(
+      taggedDeployedEVMBytecode,
+      errors
     )
 
     if (!deployedBytecodeTranspilationResult.succeeded) {
@@ -155,10 +154,8 @@ export class TranspilerImpl implements Transpiler {
         errors,
       }
     }
-    const transpiledDeployedBytecode: EVMBytecode = [
-      ...deployedBytecodeTranspilationResult.bytecodeWithTags,
-      ...constantsUsedByDeployedBytecode,
-    ]
+
+    const transpiledDeployedBytecode: EVMBytecode = deployedBytecodeTranspilationResult.bytecodeWithTags
 
     log.debug(`Fixing the constant indices for transpiled deployed bytecode...`)
     log.debug(`errors are: ${JSON.stringify(errors)}`)
@@ -168,7 +165,6 @@ export class TranspilerImpl implements Transpiler {
       errors
     )
 
-    // problem is after here?
     log.debug(
       `final transpiled deployed bytecode: \n${formatBytecode(
         finalTranspiledDeployedBytecode
@@ -176,6 +172,8 @@ export class TranspilerImpl implements Transpiler {
     )
 
     // **** DETECT AND TAG USES OF CODECOPY IN CONSTRUCTOR BYTECODE AND TRANSPILE ****
+
+    log.debug(`Finished transpiling deployed bytecode, using that result to transpile construction code...`)
 
     let taggedOriginalConstructorInitLogic: EVMBytecode
     taggedOriginalConstructorInitLogic = this.findAndTagConstants(
@@ -190,8 +188,10 @@ export class TranspilerImpl implements Transpiler {
     taggedOriginalConstructorInitLogic = this.findAndTagDeployedBytecodeReturner(
       originalConstructorInitLogic
     )
-    const constructorInitLogicTranspilationResult: TaggedTranspilationResult = this.transpileBytecodePreservingTags(
-      taggedOriginalConstructorInitLogic
+
+    const constructorInitLogicTranspilationResult: TaggedTranspilationResult = this.transpileBytecodePreservingConstants(
+      taggedOriginalConstructorInitLogic,
+      errors
     )
     if (!constructorInitLogicTranspilationResult.succeeded) {
       errors.push(
@@ -245,6 +245,8 @@ export class TranspilerImpl implements Transpiler {
 
     // **** FIX CONSTANTS IN THE INITCODE AND RETURN THE FINALIZED BYTECODE ****
 
+    log.debug(`passing into initcode constant tag corrector a transpiledDeployedBytecode of: ${bufToHexString(bytecodeToBuffer(finalTranspiledDeployedBytecode))}`)
+
     const finalTranspiledBytecode: EVMBytecode = this.fixTaggedConstantOffsets(
       [
         ...transpiledConstructorInitLogic,
@@ -269,9 +271,45 @@ export class TranspilerImpl implements Transpiler {
     }
   }
 
+  private transpileBytecodePreservingConstants(
+    taggedBytecode: EVMBytecode,
+    errors
+  ): TaggedTranspilationResult {
+    let constantsAtEOF: EVMBytecode
+    let bytecodeWithoutConstants: EVMBytecode
+    ;[
+      bytecodeWithoutConstants,
+      constantsAtEOF,
+    ] = this.splitCodeAndConstants(taggedBytecode)
+
+    const transpilationResult: TaggedTranspilationResult = this.transpileBytecodePreservingTags(
+      bytecodeWithoutConstants
+    )
+
+    if (!transpilationResult.succeeded) {
+      errors.push(
+        ...(transpilationResult as ErroredTranspilation).errors
+      )
+      return {
+        succeeded: false,
+        errors,
+      }
+    }
+    const transpiledBytecodeAndConstants: EVMBytecode = [
+      ...transpilationResult.bytecodeWithTags,
+      ...constantsAtEOF,
+    ]
+    
+    return {
+      succeeded: true,
+      bytecodeWithTags: transpiledBytecodeAndConstants
+    }
+  }
+
   private splitCodeAndConstants(
     bytecodeWithTaggedConstants: EVMBytecode
   ): EVMBytecode[] {
+    log.debug(`splitting code from constants, input is: ${bufToHexString(bytecodeToBuffer(bytecodeWithTaggedConstants))}`)
     const pushConstantOffsetOperations = bytecodeWithTaggedConstants.filter(
       (val: EVMOpcodeAndBytes): boolean => {
         return isTaggedWithReason(val, [OpcodeTagReason.IS_CONSTANT_OFFSET])
@@ -282,12 +320,15 @@ export class TranspilerImpl implements Transpiler {
         return val.tag.metadata
       }
     )
+    log.debug(`all detected constants are: ${allConstants.map((constant:Buffer) => {return bufToHexString(constant)})}`)
     const bytecodeBuf: Buffer = bytecodeToBuffer(bytecodeWithTaggedConstants)
     const constantStarts: number[] = allConstants.map(
       (theConst: Buffer): number => {
         return bytecodeBuf.indexOf(theConst)
       }
     )
+    log.debug(`all detected PCs of constants are: ${constantStarts.map((start: number) => {return start.toString(16)})}`)
+
     const lowestStartPC: number = Math.min(...constantStarts)
     const lowestStartIndexInBytecode: number = bufferToBytecode(
       bytecodeBuf.slice(0, lowestStartPC)
@@ -507,12 +548,13 @@ export class TranspilerImpl implements Transpiler {
     return bytecode
   }
 
+
   // Finds and tags the PUSHN's which are detected to be associated with CODECOPYing constants.
   // Tags based on the pattern:
   //   ...
-  // PUSH2 // offset of constant in bytecode
-  // PUSH1 // length of constant
-  // SWAP2 // where to put it into memory
+  // PUSH2 // offset or length of constant 
+  // PUSH1 // length or offset of constant
+  // SWAP2 or DUPN // determines whether the above PUSHes arre [offset, lengh] or [length, offset]
   // CODECOPY
   // It also copies the constants into the tag so that their new position can be recovered later.
   // See https://github.com/ethereum-optimism/optimistic-rollup/wiki/CODECOPYs for more details.
@@ -533,12 +575,26 @@ export class TranspilerImpl implements Transpiler {
         Opcode.isPUSHOpcode(bytecode[index + 1].opcode) &&
         bytecode[index + 3].opcode === Opcode.CODECOPY
       ) {
-        const offsetForCODECOPY: number = new BigNum(
-          op.consumedBytes
-        ).toNumber()
-        const lengthforCODECOPY: number = new BigNum(
-          bytecode[index + 1].consumedBytes
-        ).toNumber()
+        let offsetForCODECOPY: number
+        let lengthforCODECOPY: number
+        if (bytecode[index+2].opcode === Opcode.SWAP2) {
+          // then stack would be [first input stack val, first pushed val, second pushed val]
+          offsetForCODECOPY = new BigNum(
+            op.consumedBytes
+          ).toNumber()
+          lengthforCODECOPY = new BigNum(
+            bytecode[index + 1].consumedBytes
+          ).toNumber()
+        } else {
+          // we assume it's a DUP or PUSH, then the val is [whatever, second pushed val, first pushed val]
+          offsetForCODECOPY = new BigNum(
+            bytecode[index + 1].consumedBytes
+          ).toNumber()
+          lengthforCODECOPY = new BigNum(
+            op.consumedBytes
+          ).toNumber() 
+        }
+
         const constantStart: number = offsetForCODECOPY
         const constantEnd: number = constantStart + lengthforCODECOPY
         if (constantEnd > fullRawBytecode.byteLength) {
