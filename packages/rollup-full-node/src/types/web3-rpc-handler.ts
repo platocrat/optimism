@@ -60,6 +60,7 @@ export enum Web3RpcMethods {
 
   // Test methods:
   accounts = 'eth_accounts',
+  sign = 'eth_sign',
   snapshot = 'evm_snapshot',
   revert = 'evm_revert',
   mine = 'evm_mine',
@@ -73,6 +74,7 @@ export enum Web3RpcMethods {
 export const allWeb3RpcMethodsIncludingTest = Object.values(Web3RpcMethods)
 export const testWeb3RpcMethods = Object.values([
   Web3RpcMethods.accounts,
+  Web3RpcMethods.sign,
   Web3RpcMethods.snapshot,
   Web3RpcMethods.revert,
   Web3RpcMethods.mine,

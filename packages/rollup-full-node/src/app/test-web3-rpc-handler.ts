@@ -87,6 +87,9 @@ export class TestWeb3Handler extends DefaultWeb3Handler {
       case Web3RpcMethods.accounts:
         this.assertParameters(params, [])
         return this.accounts()
+      case Web3RpcMethods.sign:
+        this.assertParameters(params, [Web3RpcTypes.address, Web3RpcTypes.data])
+        return this.sign(params[0], params[1])
       case Web3RpcMethods.traceTransaction:
         return this.traceTransaction(params[0], params[1])
       default:
@@ -181,6 +184,16 @@ export class TestWeb3Handler extends DefaultWeb3Handler {
       []
     )
     log.debug(`Received accounts [${response}].`)
+    return response
+  }
+
+  public async sign(address: string, message: string): Promise<string> {
+    log.debug(`Signing message: ${message} with address: ${address}`)
+    const response = await this.context.provider.send(
+      Web3RpcMethods.sign,
+      [address, message]
+    )
+    log.debug(`Received signed message: [${response}].`)
     return response
   }
 

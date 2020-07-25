@@ -140,7 +140,7 @@ export class FullnodeRpcServer extends ExpressHttpServer {
         log.debug(
           `Received request with valid method but invalid parameters: [${JSON.stringify(
             request
-          )}]`
+          )}]: ERROR: ${err}`
         )
         return buildJsonRpcError('INVALID_PARAMS', request.id)
       }
