@@ -10,6 +10,7 @@ import { getAddress, keccak256, solidityPack } from 'ethers/utils'
 /* Contract Imports */
 import * as SimpleCreate2 from '../build/SimpleCreate2.json'
 import * as SimpleStorage from '../build/SimpleStorage.json'
+import * as SimpleFactory from '../build/SimpleFactory.json'
 
 const getCreate2Address = (
   factoryAddress: string,
@@ -62,5 +63,10 @@ describe('Create2', () => {
       bytecode
     )
     address.should.equal(expectedAddress)
+  })
+
+  it('should support solidity new Contract() syntax', async () => {
+    const simpleFactory = await deployContract(wallet, SimpleFactory, [])
+    await simpleFactory.doDeploy()
   })
 })
