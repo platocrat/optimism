@@ -1,0 +1,41 @@
+name: Generate Contract Test Coverage Reports
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  gen-test-coverage:
+    name: Generating Coverage on Node 11
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+        
+      - name: Setup Node 11
+        uses: actions/setup-node@v1
+        with:
+          node-version: 11
+
+      - name: Install Dependencies
+        run: yarn install
+      
+      - name: Enter Contracts Package
+        run: cd packages/contracts
+
+      - name: Clean and Build
+        run: |
+          yarn clean
+          yarn build
+
+      - name: Run Test Coverage
+        run: yarn run coverage
+      
+      - name: Publish Coverage Report
+        uses: JamesIves/github-pages-deploy-action@3.5.9
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages-coverage
+          FOLDER: packages/contracts/coverage
