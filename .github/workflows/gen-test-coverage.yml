@@ -21,9 +21,6 @@ jobs:
 
       - name: Install Dependencies
         run: yarn install
-      
-      - name: Enter Contracts Package
-        run: cd packages/contracts
 
       - name: Clean and Build
         run: |
@@ -31,7 +28,9 @@ jobs:
           yarn build
 
       - name: Run Test Coverage
-        run: yarn run coverage
+        run: |
+          cd packages/contracts
+          yarn run coverage
       
       - name: Publish Coverage Report
         uses: JamesIves/github-pages-deploy-action@3.5.9
