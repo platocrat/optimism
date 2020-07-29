@@ -65,5 +65,8 @@ const parseTestFiles = () => {
 }
 
 module.exports = {
-  skipFiles: parseTestFiles()
+  skipFiles: parseTestFiles(),
+  mocha: {
+    timeout: 100000
+  }
 }
