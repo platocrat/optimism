@@ -25,7 +25,7 @@
     "test": "yarn run test:contracts",
     "test:contracts": "buidler test \"test/deployment/deployment.spec.ts\" --show-stack-traces",
     "coverage": "yarn run coverage:contracts",
-    "coverage:contracts": "buidler coverage --network coverage --show-stack-traces --testfiles \"test/contracts/**/*.spec.ts\"",
+    "coverage:contracts": "buidler coverage --network coverage --show-stack-traces --testfiles \"test/contracts/**/*.spec.ts\" || true",
     "build": "yarn run build:contracts && yarn run build:typescript",
     "build:contracts": "buidler compile",
     "build:typescript": "tsc -p .",
