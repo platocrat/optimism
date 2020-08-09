@@ -31,7 +31,7 @@ const config: BuidlerConfig = {
   networks: {
     buidlerevm: {
       accounts: DEFAULT_ACCOUNTS_BUIDLER,
-      blockGasLimit: GAS_LIMIT * 2,
+      blockGasLimit: GAS_LIMIT * 200,
       allowUnlimitedContractSize: true, // TEMPORARY: Will be fixed by AddressResolver PR.
     },
     coverage: {

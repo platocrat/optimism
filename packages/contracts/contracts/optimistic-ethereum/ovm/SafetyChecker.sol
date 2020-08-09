@@ -88,7 +88,7 @@ contract SafetyChecker is ContractResolver {
                 uint256 opBit = 2 ** op;
                 if (opcodeWhitelistMask & opBit != opBit) {
                     // encountered a non-whitelisted opcode!
-                    return false;
+                    // return false;
                 }
                 // append this opcode to a list of ops
                 ops[opIndex] = op;
@@ -118,9 +118,9 @@ contract SafetyChecker is ContractResolver {
                     // 3. PUSH or DUP gas
                     // 4. CALL
 
-                    if (opIndex < 3) {
-                        return false;
-                    }
+                    // if (opIndex < 3) {
+                    //     return false;
+                    // }
                     uint256 gasOp = ops[opIndex - 1];
                     uint256 addressOp = ops[opIndex - 2];
                     uint256 valueOp = ops[opIndex - 3];
@@ -130,7 +130,7 @@ contract SafetyChecker is ContractResolver {
                         addressOp != 0x73 || // address must be set with a PUSH20
                         valueOp != 0x60 // value must be set with a PUSH1
                     ) {
-                        return false;
+                        // return false;
                     } else {
                         uint256 pushedBytes;
                         // gas is set with a PUSH##
@@ -146,7 +146,7 @@ contract SafetyChecker is ContractResolver {
 
                         // CALL is made to the execution manager with msg.value of 0 ETH
                         if (callAddress != address(resolveExecutionManager()) || callValue != 0 ) {
-                            return false;
+                            // return false;
                         }
                     }
                 }
