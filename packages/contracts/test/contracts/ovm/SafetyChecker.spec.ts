@@ -2,15 +2,18 @@ import '../../setup'
 
 /* External Imports */
 import { ethers } from '@nomiclabs/buidler'
-import { getLogger, add0x, remove0x } from '@eth-optimism/core-utils'
-import { Contract, ContractFactory, Signer } from 'ethers'
-
-/* Internal Imports */
 import {
+  getLogger,
+  add0x,
   DEFAULT_OPCODE_WHITELIST_MASK,
   DEFAULT_UNSAFE_OPCODES,
   EVMOpcode,
   Opcode,
+} from '@eth-optimism/core-utils'
+import { Contract, ContractFactory, Signer } from 'ethers'
+
+/* Internal Imports */
+import {
   makeAddressResolver,
   deployAndRegister,
   AddressResolverMapping,
@@ -34,7 +37,7 @@ const whitelistedNotHaltingOrCALL: EVMOpcode[] = Opcode.ALL_OP_CODES.filter(
 )
 
 /* Tests */
-describe.only('Safety Checker', () => {
+describe('Safety Checker', () => {
   let wallet: Signer
   before(async () => {
     ;[wallet] = await ethers.getSigners()

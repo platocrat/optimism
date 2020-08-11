@@ -2,13 +2,16 @@ import '../../../setup'
 
 /* External Imports */
 import { ethers } from '@nomiclabs/buidler'
-import { getLogger, NULL_ADDRESS } from '@eth-optimism/core-utils'
+import {
+  getLogger,
+  NULL_ADDRESS,
+  DEFAULT_OPCODE_WHITELIST_MASK,
+} from '@eth-optimism/core-utils'
 import { Contract, Signer, ContractFactory } from 'ethers'
 import { TransactionReceipt } from 'ethers/providers'
 
 /* Internal Imports */
 import {
-  DEFAULT_OPCODE_WHITELIST_MASK,
   GAS_LIMIT,
   manuallyDeployOvmContractReturnReceipt,
   didCreateSucceed,

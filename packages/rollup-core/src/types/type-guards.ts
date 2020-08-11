@@ -1,5 +1,5 @@
 /* Internal Imports */
-import { EVMOpcodeAndBytes } from '../'
+import { EVMOpcodeAndBytes } from '@eth-optimism/core-utils'
 
 /**
  * Validates that a given EVMOpcodeAndBytes has the right number of consumed bytes

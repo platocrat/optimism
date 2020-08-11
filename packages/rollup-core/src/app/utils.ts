@@ -1,10 +1,17 @@
 /* External Imports */
-import { bufToHexString, isObject, remove0x } from '@eth-optimism/core-utils'
+import {
+  bufToHexString,
+  isObject,
+  remove0x,
+  EVMBytecode,
+  EVMOpcodeAndBytes,
+  Opcode,
+} from '@eth-optimism/core-utils'
 
 import { Contract, ContractFactory, Wallet } from 'ethers'
 
 /* Internal Imports */
-import { Address, EVMBytecode, EVMOpcodeAndBytes, Opcode } from '../types'
+import { Address } from '../types'
 import { BaseProvider, TransactionResponse } from 'ethers/providers'
 
 /**

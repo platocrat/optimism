@@ -8,13 +8,13 @@ import {
   add0x,
   TestUtils,
   NULL_ADDRESS,
+  DEFAULT_OPCODE_WHITELIST_MASK,
 } from '@eth-optimism/core-utils'
 import { Contract, ContractFactory, Signer } from 'ethers'
 import { fromPairs } from 'lodash'
 
 /* Internal Imports */
 import {
-  DEFAULT_OPCODE_WHITELIST_MASK,
   GAS_LIMIT,
   executeOVMCall,
   encodeMethodId,

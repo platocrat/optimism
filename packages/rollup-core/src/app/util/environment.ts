@@ -1,8 +1,5 @@
-import { getLogger, logError } from '@eth-optimism/core-utils'
-import {
-  DEFAULT_OPCODE_WHITELIST_MASK,
-  L2_TO_L1_MESSAGE_PASSER_OVM_ADDRESS,
-} from '../constants'
+import { getLogger, logError, DEFAULT_OPCODE_WHITELIST_MASK } from '@eth-optimism/core-utils'
+import { L2_TO_L1_MESSAGE_PASSER_OVM_ADDRESS } from '../constants'
 import * as fs from 'fs'
 
 const log = getLogger('environment')
