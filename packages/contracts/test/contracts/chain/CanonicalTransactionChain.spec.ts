@@ -24,9 +24,7 @@ describe.only('CanonicalTransactionChain', () => {
   const FORCE_INCLUSION_PERIOD = 600 //600 seconds = 10 minutes
   const DEFAULT_BATCH = []
   for (let i = 0; i < 1; i++) {
-    DEFAULT_BATCH.push(
-      '0x00'
-    )
+    DEFAULT_BATCH.push('0x00')
   }
   const DEFAULT_TX = '0x1234'
 
@@ -176,6 +174,8 @@ describe.only('CanonicalTransactionChain', () => {
         params: [resolver.addressResolver.address],
       }
     )
+
+    await canonicalTxChain.init()
   })
 
   describe('appendSequencerBatch()', async () => {

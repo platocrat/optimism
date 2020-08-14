@@ -33,6 +33,9 @@ contract CanonicalTransactionChain is ContractResolver {
     uint public cumulativeNumElements;
     bytes32[] public batches;
     uint public lastOVMTimestamp;
+    L1ToL2TransactionQueue public l1ToL2Queue;
+    SafetyTransactionQueue public safetyQueue;
+    RollupMerkleUtils public merkleUtils;
 
 
     /*
@@ -55,6 +58,12 @@ contract CanonicalTransactionChain is ContractResolver {
         sequencer = _sequencer;
         forceInclusionPeriodSeconds = _forceInclusionPeriodSeconds;
         lastOVMTimestamp = 0;
+    }
+
+    function init() public {
+        l1ToL2Queue = resolveL1ToL2TransactionQueue(); // 5k gas
+        safetyQueue = resolveSafetyTransactionQueue(); // 5k gas
+        merkleUtils = resolveRollupMerkleUtils(); //6.5k gas
     }
 
 
@@ -115,9 +124,6 @@ contract CanonicalTransactionChain is ContractResolver {
     function appendL1ToL2Batch()
         public
     {
-        L1ToL2TransactionQueue l1ToL2Queue = resolveL1ToL2TransactionQueue();
-        SafetyTransactionQueue safetyQueue = resolveSafetyTransactionQueue();
-
         DataTypes.TimestampedHash memory l1ToL2Header = l1ToL2Queue.peek();
 
         require(
@@ -135,9 +141,6 @@ contract CanonicalTransactionChain is ContractResolver {
     function appendSafetyBatch()
         public
     {
-        L1ToL2TransactionQueue l1ToL2Queue = resolveL1ToL2TransactionQueue();
-        SafetyTransactionQueue safetyQueue = resolveSafetyTransactionQueue();
-
         DataTypes.TimestampedHash memory safetyHeader = safetyQueue.peek();
 
         require(
@@ -161,10 +164,6 @@ contract CanonicalTransactionChain is ContractResolver {
         public
     {
         uint256 startGas = gasleft();
-        L1ToL2TransactionQueue l1ToL2Queue = resolveL1ToL2TransactionQueue(); // 5k gas
-        // console.log('Gas used 0:', startGas - gasleft());
-        SafetyTransactionQueue safetyQueue = resolveSafetyTransactionQueue(); // 5k gas
-        // console.log('Gas used 1:', startGas - gasleft());
         require(
             authenticateAppend(msg.sender),
             "Message sender does not have permission to append a batch"
@@ -202,8 +201,6 @@ contract CanonicalTransactionChain is ContractResolver {
         // console.log('Gas used 2:', startGas - gasleft());
 
         lastOVMTimestamp = _timestamp; //2k gas
-        // console.log('Gas used 3:', startGas - gasleft());
-        RollupMerkleUtils merkleUtils = resolveRollupMerkleUtils(); //6.5k gas
         // console.log('Gas used 4:', startGas - gasleft());
         bytes32 batchHeaderHash = keccak256(abi.encodePacked(
             _timestamp,
