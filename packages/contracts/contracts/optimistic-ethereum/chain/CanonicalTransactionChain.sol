@@ -9,6 +9,7 @@ import { SafetyTransactionQueue } from "../queue/SafetyTransactionQueue.sol";
 import { ContractResolver } from "../utils/resolvers/ContractResolver.sol";
 import { DataTypes } from "../utils/libraries/DataTypes.sol";
 import { RollupMerkleUtils } from "../utils/libraries/RollupMerkleUtils.sol";
+import { console } from "@nomiclabs/buidler/console.sol";
 
 /**
  * @title CanonicalTransactionChain
@@ -159,59 +160,66 @@ contract CanonicalTransactionChain is ContractResolver {
     )
         public
     {
-        L1ToL2TransactionQueue l1ToL2Queue = resolveL1ToL2TransactionQueue();
-        SafetyTransactionQueue safetyQueue = resolveSafetyTransactionQueue();
-
+        uint256 startGas = gasleft();
+        L1ToL2TransactionQueue l1ToL2Queue = resolveL1ToL2TransactionQueue(); // 5k gas
+        // console.log('Gas used 0:', startGas - gasleft());
+        SafetyTransactionQueue safetyQueue = resolveSafetyTransactionQueue(); // 5k gas
+        // console.log('Gas used 1:', startGas - gasleft());
         require(
             authenticateAppend(msg.sender),
             "Message sender does not have permission to append a batch"
-        );
-
+        ); // 2.5k gas
+        // console.log('Gas require 0:', startGas - gasleft());
         require(
             _txBatch.length > 0,
             "Cannot submit an empty batch"
-        );
-
+        ); // 1.5k gas
+        // console.log('Gas require 1:', startGas - gasleft());
         require(
             _timestamp + forceInclusionPeriodSeconds > now,
             "Cannot submit a batch with a timestamp older than the sequencer inclusion period"
-        );
-
+        ); // 2k gas
+        // console.log('Gas require 2:', startGas - gasleft());
         require(
             _timestamp <= now,
             "Cannot submit a batch with a timestamp in the future"
-        );
-
+        ); // 1.5k gas
+        // console.log('Gas require 3:', startGas - gasleft());
         require(
             l1ToL2Queue.isEmpty() || _timestamp <= l1ToL2Queue.peekTimestamp(),
             "Must process older L1ToL2Queue batches first to enforce timestamp monotonicity"
-        );
-
+        ); //5k gas
+        // console.log('Gas require 4:', startGas - gasleft());
         require(
             safetyQueue.isEmpty() || _timestamp <= safetyQueue.peekTimestamp(),
             "Must process older SafetyQueue batches first to enforce timestamp monotonicity"
-        );
-
+        ); //5.5k gas
+        // console.log('Gas require 5:', startGas - gasleft());
         require(
             _timestamp >= lastOVMTimestamp,
             "Timestamps must monotonically increase"
-        );
+        ); //2k gas
+        // console.log('Gas used 2:', startGas - gasleft());
 
-        lastOVMTimestamp = _timestamp;
-
-        RollupMerkleUtils merkleUtils = resolveRollupMerkleUtils();
+        lastOVMTimestamp = _timestamp; //2k gas
+        // console.log('Gas used 3:', startGas - gasleft());
+        RollupMerkleUtils merkleUtils = resolveRollupMerkleUtils(); //6.5k gas
+        // console.log('Gas used 4:', startGas - gasleft());
         bytes32 batchHeaderHash = keccak256(abi.encodePacked(
             _timestamp,
             false, // isL1ToL2Tx
             merkleUtils.getMerkleRoot(_txBatch), // elementsMerkleRoot
             _txBatch.length, // numElementsInBatch
             cumulativeNumElements // cumulativeNumElements
-        ));
+        )); //8k gas
+        // console.log('Gas used 5:', startGas - gasleft());
 
-        batches.push(batchHeaderHash);
-        cumulativeNumElements += _txBatch.length;
-
-        emit SequencerBatchAppended(batchHeaderHash);
+        batches.push(batchHeaderHash); //8k gas
+        // console.log('Gas used 6:', startGas - gasleft());
+        cumulativeNumElements += _txBatch.length; // 7.5k
+        // console.log('Gas used 7:', startGas - gasleft());
+        emit SequencerBatchAppended(batchHeaderHash); // 2.5k
+        // console.log('Gas used 8:', startGas - gasleft());
     }
 
     /**

@@ -19,10 +19,15 @@ import {
 const log = getLogger('canonical-tx-chain', true)
 
 /* Tests */
-describe('CanonicalTransactionChain', () => {
+describe.only('CanonicalTransactionChain', () => {
   const provider = ethers.provider
   const FORCE_INCLUSION_PERIOD = 600 //600 seconds = 10 minutes
-  const DEFAULT_BATCH = ['0x1234', '0x5678']
+  const DEFAULT_BATCH = []
+  for (let i = 0; i < 1; i++) {
+    DEFAULT_BATCH.push(
+      '0x00'
+    )
+  }
   const DEFAULT_TX = '0x1234'
 
   let wallet: Signer
@@ -45,9 +50,12 @@ describe('CanonicalTransactionChain', () => {
   const appendSequencerBatch = async (batch: string[]): Promise<number> => {
     const timestamp = Math.floor(Date.now() / 1000)
     // Submit the rollup batch on-chain
-    await canonicalTxChain
+    const tx = await canonicalTxChain
       .connect(sequencer)
       .appendSequencerBatch(batch, timestamp)
+    console.log('submitting ', batch.length, 'elements...')
+    const receipt = await provider.getTransactionReceipt(tx.hash)
+    console.log('Gas used:', receipt.gasUsed.toString())
     return timestamp
   }
 
@@ -171,7 +179,8 @@ describe('CanonicalTransactionChain', () => {
   })
 
   describe('appendSequencerBatch()', async () => {
-    it('should not throw when appending a batch from the sequencer', async () => {
+    it.only('should not throw when appending a batch from the sequencer', async () => {
+      await appendSequencerBatch(DEFAULT_BATCH)
       await appendSequencerBatch(DEFAULT_BATCH)
     })
 
