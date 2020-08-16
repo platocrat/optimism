@@ -168,40 +168,40 @@ contract CanonicalTransactionChain is ContractResolver {
             authenticateAppend(msg.sender),
             "Message sender does not have permission to append a batch"
         ); // 2.5k gas
-        // console.log('Gas require 0:', startGas - gasleft());
+        console.log('Gas require 0:', startGas - gasleft());
         require(
             _txBatch.length > 0,
             "Cannot submit an empty batch"
         ); // 1.5k gas
-        // console.log('Gas require 1:', startGas - gasleft());
+        console.log('Gas require 1:', startGas - gasleft());
         require(
             _timestamp + forceInclusionPeriodSeconds > now,
             "Cannot submit a batch with a timestamp older than the sequencer inclusion period"
         ); // 2k gas
-        // console.log('Gas require 2:', startGas - gasleft());
+        console.log('Gas require 2:', startGas - gasleft());
         require(
             _timestamp <= now,
             "Cannot submit a batch with a timestamp in the future"
         ); // 1.5k gas
-        // console.log('Gas require 3:', startGas - gasleft());
+        console.log('Gas require 3:', startGas - gasleft());
         require(
             l1ToL2Queue.isEmpty() || _timestamp <= l1ToL2Queue.peekTimestamp(),
             "Must process older L1ToL2Queue batches first to enforce timestamp monotonicity"
         ); //5k gas
-        // console.log('Gas require 4:', startGas - gasleft());
+        console.log('Gas require 4:', startGas - gasleft());
         require(
             safetyQueue.isEmpty() || _timestamp <= safetyQueue.peekTimestamp(),
             "Must process older SafetyQueue batches first to enforce timestamp monotonicity"
         ); //5.5k gas
-        // console.log('Gas require 5:', startGas - gasleft());
+        console.log('Gas require 5:', startGas - gasleft());
         require(
             _timestamp >= lastOVMTimestamp,
             "Timestamps must monotonically increase"
         ); //2k gas
-        // console.log('Gas used 2:', startGas - gasleft());
+        console.log('Gas used 2:', startGas - gasleft());
 
         lastOVMTimestamp = _timestamp; //2k gas
-        // console.log('Gas used 4:', startGas - gasleft());
+        console.log('Gas used 4:', startGas - gasleft());
         bytes32 batchHeaderHash = keccak256(abi.encodePacked(
             _timestamp,
             false, // isL1ToL2Tx
@@ -209,14 +209,14 @@ contract CanonicalTransactionChain is ContractResolver {
             _txBatch.length, // numElementsInBatch
             cumulativeNumElements // cumulativeNumElements
         )); //8k gas
-        // console.log('Gas used 5:', startGas - gasleft());
+        console.log('Gas used 5:', startGas - gasleft());
 
         batches.push(batchHeaderHash); //8k gas
-        // console.log('Gas used 6:', startGas - gasleft());
+        console.log('Gas used 6:', startGas - gasleft());
         cumulativeNumElements += _txBatch.length; // 7.5k
-        // console.log('Gas used 7:', startGas - gasleft());
+        console.log('Gas used 7:', startGas - gasleft());
         emit SequencerBatchAppended(batchHeaderHash); // 2.5k
-        // console.log('Gas used 8:', startGas - gasleft());
+        console.log('Gas used 8:', startGas - gasleft());
     }
 
     /**

@@ -106,6 +106,7 @@ describe('StateCommitmentChain', () => {
         ],
       }
     )
+    await canonicalTxChain.init()
 
     await appendTxBatch(DEFAULT_TX_BATCH)
     await resolver.addressResolver.setAddress(
@@ -131,6 +132,11 @@ describe('StateCommitmentChain', () => {
       await stateChain
         .connect(randomWallet)
         .appendStateBatch(DEFAULT_STATE_BATCH)
+      const tx = await stateChain
+        .connect(randomWallet)
+        .appendStateBatch(DEFAULT_STATE_BATCH)
+      const receipt = await ethers.provider.getTransactionReceipt(tx.hash)
+      console.log('Gas used:', receipt.gasUsed.toString())
     })
 
     it('should throw if submitting an empty batch', async () => {

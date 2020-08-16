@@ -19,7 +19,7 @@ import {
 const log = getLogger('canonical-tx-chain', true)
 
 /* Tests */
-describe.only('CanonicalTransactionChain', () => {
+describe('CanonicalTransactionChain', () => {
   const provider = ethers.provider
   const FORCE_INCLUSION_PERIOD = 600 //600 seconds = 10 minutes
   const DEFAULT_BATCH = []

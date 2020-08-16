@@ -10,6 +10,7 @@ import { ContractResolver } from "../utils/resolvers/ContractResolver.sol";
 import { DataTypes } from "../utils/libraries/DataTypes.sol";
 import { RollupMerkleUtils } from "../utils/libraries/RollupMerkleUtils.sol";
 
+import { console } from "@nomiclabs/buidler/console.sol";
 /**
  * @title StateCommitmentChain
  */
@@ -87,28 +88,34 @@ contract StateCommitmentChain is ContractResolver {
     )
         public
     {
+        uint startGas = gasleft();
         CanonicalTransactionChain canonicalTransactionChain = resolveCanonicalTransactionChain();
+        console.log('Gas require 1:', startGas - gasleft());
         RollupMerkleUtils merkleUtils = resolveRollupMerkleUtils();
-
+        console.log('Gas require 2:', startGas - gasleft());
         require(
             cumulativeNumElements + _stateBatch.length <= canonicalTransactionChain.cumulativeNumElements(),
             "Cannot append more state commitments than total number of transactions in CanonicalTransactionChain"
         );
+        console.log('Gas require 3:', startGas - gasleft());
 
         require(
             _stateBatch.length > 0,
             "Cannot submit an empty state commitment batch"
         );
-
+        console.log('Gas require 4:', startGas - gasleft());
         bytes32 batchHeaderHash = keccak256(abi.encodePacked(
             merkleUtils.getMerkleRoot(_stateBatch), // elementsMerkleRoot
             _stateBatch.length, // numElementsInBatch
             cumulativeNumElements // cumulativeNumElements
         ));
-
+        console.log('Gas require 5:', startGas - gasleft());
         batches.push(batchHeaderHash);
+        console.log('Gas require 6:', startGas - gasleft());
         cumulativeNumElements += _stateBatch.length;
+        console.log('Gas require 7:', startGas - gasleft());
         emit StateBatchAppended(batchHeaderHash);
+        console.log('Gas require 8:', startGas - gasleft());
     }
 
     /**
