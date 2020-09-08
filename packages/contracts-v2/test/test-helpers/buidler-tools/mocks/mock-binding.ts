@@ -5,6 +5,7 @@ import { ethers } from 'ethers'
 /* Internal Imports */
 import { MockContract, MockContractFunction } from './mock-contract.types'
 import { toHexString, fromHexString } from '../../buffer-utils'
+import { sanitizeMockContractFunction } from './mock-generation'
 
 /**
  * Binds logic to the buidler node that checks for calls to mock contracts and
@@ -161,11 +162,11 @@ export const bindMockContractToVM = (
     return calls[sighash] || []
   }
 
-  mock.getCallCount = (functionName: string): number => {
+  ;(mock as any).getCallCount = (functionName: string): number => {
     return getCalls(functionName).length
   }
 
-  mock.getCallData = (functionName: string, callIndex: number): any[] => {
+  ;(mock as any).getCallData = (functionName: string, callIndex: number): any[] => {
     return mock.interface
       .decodeFunctionData(functionName, getCalls(functionName)[callIndex])
       .map((element) => {
@@ -173,7 +174,11 @@ export const bindMockContractToVM = (
       })
   }
 
-  mock.__fns = fns.reduce((fnmap, fn) => {
+  ;(mock as any).setMockFunction = (functionName: string, fn: MockContractFunction): void => {
+    mock.__fns[mock.interface.getSighash(functionName)] = sanitizeMockContractFunction(fn)
+  }
+
+  ;(mock as any).__fns = fns.reduce((fnmap, fn) => {
     fnmap[mock.interface.getSighash(fn.functionName)] = fn
     return fnmap
   }, {})

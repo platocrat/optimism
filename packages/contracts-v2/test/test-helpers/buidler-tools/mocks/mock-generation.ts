@@ -62,6 +62,30 @@ const isValidMockContractFunction = (fn: MockContractFunction): boolean => {
 
 /**
  * Basic sanitization for mock function definitions
+ * @param fn Mock contract function definition to sanitize.
+ * @returns Sanitized definition.
+ */
+export const sanitizeMockContractFunction = (
+  fn: MockContractFunction
+): MockContractFunction => {
+  const sanitized = {
+    functionName: fn.functionName,
+    inputTypes: fn.inputTypes || [],
+    outputTypes: fn.outputTypes || [],
+    returnValues: fn.returnValues || [],
+  }
+
+  if (!isValidMockContractFunction(sanitized)) {
+    throw new Error(
+      'Provided MockContract function is invalid. Please check your mock definition.'
+    )
+  }
+
+  return sanitized
+}
+
+/**
+ * Basic sanitization for mock function definitions
  * @param fns Mock contract function definitions to sanitize.
  * @returns Sanitized definitions.
  */
@@ -69,20 +93,7 @@ const sanitizeMockContractFunctions = (
   fns: MockContractFunction[]
 ): MockContractFunction[] => {
   return fns.map((fn) => {
-    const sanitized = {
-      functionName: fn.functionName,
-      inputTypes: fn.inputTypes || [],
-      outputTypes: fn.outputTypes || [],
-      returnValues: fn.returnValues || [],
-    }
-
-    if (!isValidMockContractFunction(sanitized)) {
-      throw new Error(
-        'Provided MockContract function is invalid. Please check your mock definition.'
-      )
-    }
-
-    return sanitized
+    return sanitizeMockContractFunction(fn)
   })
 }
 
