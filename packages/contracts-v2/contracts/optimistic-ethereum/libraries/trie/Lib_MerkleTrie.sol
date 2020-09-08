@@ -67,7 +67,7 @@ contract Lib_MerkleTrie is Lib_ContractProxyResolver {
     }
 
     /*
-     * Public Functions
+     * Internal Functions
      */
 
     /**

@@ -14,7 +14,6 @@ import { OVM_BaseChain } from "./OVM_BaseChain.sol";
 
 contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_BaseChain {
     iOVM_BaseQueue public ovmL1ToL2TransactionQueue;
-    iOVM_BaseQueue public ovmSafetyTransactionQueue;
     uint256 forceInclusionPeriodSeconds;
     uint256 lastOVMTimestamp;
 
@@ -33,7 +32,6 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         OVM_BaseChain(_libContractProxyManager)
     {
         ovmL1ToL2TransactionQueue = iOVM_BaseQueue(resolve("OVM_L1ToL2TransactionQueue"));
-        ovmSafetyTransactionQueue = iOVM_BaseQueue(resolve("OVM_SafetyTransactionQueue"));
         forceInclusionPeriodSeconds = _forceInclusionPeriodSeconds;
     }
 
@@ -46,9 +44,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
             "No batches are currently queued to be appended."
         );
 
-        iOVM_BaseQueue nextQueue = _getNextQueue();
-        _appendQueueBatch(nextQueue.peek(), 1);
-        nextQueue.dequeue();
+        _appendQueueBatch(ovmL1ToL2TransactionQueue.peek(), 1);
+        ovmL1ToL2TransactionQueue.dequeue();
     }
 
     function appendSequencerBatch(
@@ -65,10 +62,8 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
         );
 
         if (_hasPendingQueue()) {
-            iOVM_BaseQueue nextQueue = _getNextQueue();
-
             require(
-                _timestamp <= nextQueue.peek().timestamp,
+                _timestamp <= ovmL1ToL2TransactionQueue.peek().timestamp,
                 "Older queue batches must be processed before a newer sequencer batch."
             );
         }
@@ -88,32 +83,7 @@ contract OVM_CanonicalTransactionChain is iOVM_CanonicalTransactionChain, OVM_Ba
             bool _pending
         )
     {
-        return ovmL1ToL2TransactionQueue.size() > 0 || ovmSafetyTransactionQueue.size() > 0;
-    }
-
-    function _getNextQueue()
-        internal
-        view
-        returns (
-            iOVM_BaseQueue _queue
-        )
-    {
-        if (ovmL1ToL2TransactionQueue.size() == 0) {
-            _queue = ovmSafetyTransactionQueue;
-        } else if (ovmSafetyTransactionQueue.size() == 0) {
-            _queue = ovmL1ToL2TransactionQueue;
-        } else {
-            Lib_OVMDataTypes.OVMQueueElement memory nextL1ToL2QueueElement = ovmL1ToL2TransactionQueue.peek();
-            Lib_OVMDataTypes.OVMQueueElement memory nextSafetyQueueElement = ovmSafetyTransactionQueue.peek();
-
-            if (nextL1ToL2QueueElement.timestamp < nextSafetyQueueElement.timestamp) {
-                _queue = ovmL1ToL2TransactionQueue;
-            } else {
-                _queue = ovmSafetyTransactionQueue;
-            }
-        }
-
-        return _queue;
+        return ovmL1ToL2TransactionQueue.size() > 0;
     }
 
     function _appendQueueBatch(

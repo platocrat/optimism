@@ -24,7 +24,7 @@
   "scripts": {
     "all": "yarn clean && yarn build && yarn test && yarn fix && yarn lint",
     "test": "yarn run test:contracts",
-    "test:contracts": "buidler test --show-stack-traces",
+    "test:contracts": "buidler test \"test/contracts/libraries/utils/Lib_EthUtils.spec.ts\" --show-stack-traces",
     "coverage": "yarn run coverage:contracts",
     "coverage:contracts": "buidler coverage --network coverage --show-stack-traces --testfiles \"test/contracts/**/*.spec.ts\"",
     "build": "yarn run build:contracts && yarn run build:typescript && yarn run build:copy",
@@ -50,7 +50,11 @@
     "chai": "^4.2.0",
     "ethereum-waffle": "3.0.0",
     "ethers": "5.0.0",
+    "merkle-patricia-tree": "git+https://github.com/kfichter/merkle-patricia-tree",
     "mocha": "^8.1.1",
+    "random-bytes-seed": "^1.0.3",
+    "rlp": "^2.2.6",
+    "seedrandom": "^3.0.5",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.2"
   }
