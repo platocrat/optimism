@@ -3,6 +3,7 @@ import { expect } from '../../setup'
 /* External Imports */
 import { ethers } from '@nomiclabs/buidler'
 import { ContractFactory, Signer, Contract } from 'ethers'
+import { Watcher } from '@eth-optimism/ovm-toolchain'
 
 const getXDomainCalldata = (
   messenger: Contract,
@@ -49,6 +50,7 @@ describe('L2CrossDomainMessenger', () => {
   let MockL2ToL1MessagePasser: Contract
   let CrossDomainSimpleStorage: Contract
   let L2CrossDomainMessenger: Contract
+  let watcher: Watcher
   beforeEach(async () => {
     MockL1MessageSender = await MockL1MessageSenderFactory.deploy()
     MockL2ToL1MessagePasser = await MockL2ToL1MessagePasserFactory.deploy()
@@ -62,10 +64,20 @@ describe('L2CrossDomainMessenger', () => {
     await L2CrossDomainMessenger.setTargetMessengerAddress(
       await wallet.getAddress()
     )
+    watcher = new Watcher({
+      l1: {
+        provider: ethers.provider,
+        messengerAddress: MockL1MessageSender.address
+      },
+      l2: {
+        provider: ethers.provider,
+        messengerAddress: L2CrossDomainMessenger.address
+      },
+    })
   })
 
   describe('relayMessage()', () => {
-    it('should relay a message to a target contract', async () => {
+    it.only('should relay a message to a target contract', async () => {
       const expectedKey = ethers.utils.keccak256('0x1234')
       const expectedVal = ethers.utils.keccak256('0x5678')
 
@@ -75,7 +87,9 @@ describe('L2CrossDomainMessenger', () => {
       )
 
       await MockL1MessageSender.setL1MessageSender(await wallet.getAddress())
-
+      watcher.onceL2Relay('0x7624815c1b6afe0a57ca03aee463b35acaec65dec665bd0d26e7e9e8fcecb317', (txHash) => {
+        console.log('message relayed in L2 tx:', txHash)
+      })
       await L2CrossDomainMessenger.relayMessage(
         CrossDomainSimpleStorage.address,
         await wallet.getAddress(),

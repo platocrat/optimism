@@ -3,6 +3,7 @@ import { expect } from '../../setup'
 /* External Imports */
 import { ethers } from '@nomiclabs/buidler'
 import { Signer, ContractFactory, Contract } from 'ethers'
+import { Watcher } from '@eth-optimism/ovm-toolchain'
 
 /* Internal Imports */
 import {
@@ -113,8 +114,9 @@ const appendAndGenerateStateBatch = async (
   return localBatch
 }
 
-describe('L1CrossDomainMessenger', () => {
+describe.only('L1CrossDomainMessenger', () => {
   let wallet: Signer
+  let watcher: Watcher
   before(async () => {
     ;[wallet] = await ethers.getSigners()
   })
@@ -204,6 +206,17 @@ describe('L1CrossDomainMessenger', () => {
       DUMMY_L2_MESSENGER_ADDRESS
     )
     await CrossDomainSimpleStorage.setMessenger(L1CrossDomainMessenger.address)
+
+    watcher = new Watcher({
+      l1: {
+        provider: ethers.provider,
+        messengerAddress: L1CrossDomainMessenger.address
+      },
+      l2: {
+        provider: ethers.provider,
+        messengerAddress: L2CrossDomainMessenger.address
+      }
+    })
   })
 
   describe('relayMessage()', () => {
@@ -367,7 +380,7 @@ describe('L1CrossDomainMessenger', () => {
   })
 
   describe('sendMessage()', () => {
-    it('should add the correct message to the L1ToL2TransactionQueue', async () => {
+    it.only('should add the correct message to the L1ToL2TransactionQueue', async () => {
       const expectedKey = ethers.utils.keccak256('0x1234')
       const expectedVal = ethers.utils.keccak256('0x5678')
 
@@ -380,11 +393,14 @@ describe('L1CrossDomainMessenger', () => {
 
       const messageNonce = await L1CrossDomainMessenger.messageNonce()
 
-      await L1CrossDomainMessenger.sendMessage(
+      const tx = await L1CrossDomainMessenger.sendMessage(
         CrossDomainSimpleStorage.address,
         calldata,
         gasLimit
       )
+
+      const messageHashes = await watcher.getMessageHashesFromL1Tx(tx.hash)
+      console.log('got message hash array:', messageHashes)
 
       const xDomainCalldata = getXDomainCalldata(
         L2CrossDomainMessenger,
@@ -410,6 +426,7 @@ describe('L1CrossDomainMessenger', () => {
 
       const messageHash = ethers.utils.keccak256(xDomainCalldata)
       const messageSent = await L1CrossDomainMessenger.sentMessages(messageHash)
+      console.log('expected message hash:', messageHash)
       expect(messageSent).to.equal(true)
     })
   })
