@@ -87,9 +87,6 @@ describe('L2CrossDomainMessenger', () => {
       )
 
       await MockL1MessageSender.setL1MessageSender(await wallet.getAddress())
-      watcher.onceL2Relay('0x7624815c1b6afe0a57ca03aee463b35acaec65dec665bd0d26e7e9e8fcecb317', (txHash) => {
-        console.log('message relayed in L2 tx:', txHash)
-      })
       await L2CrossDomainMessenger.relayMessage(
         CrossDomainSimpleStorage.address,
         await wallet.getAddress(),
@@ -129,7 +126,7 @@ describe('L2CrossDomainMessenger', () => {
       ).to.be.rejectedWith('Provided message has already been received.')
     })
 
-    it('should fail if the sender is not the L1 messenger', async () => {
+    it.only('should fail if the sender is not the L1 messenger', async () => {
       const expectedKey = ethers.utils.keccak256('0x1234')
       const expectedVal = ethers.utils.keccak256('0x5678')
 
@@ -148,6 +145,7 @@ describe('L2CrossDomainMessenger', () => {
           0
         )
       ).to.be.rejectedWith('Provided message could not be verified.')
+      await watcher.getL2TransactionReceipt('0x7624815c1b6afe0a57ca03aee463b35acaec65dec665bd0d26e7e9e8fcecb317')
     })
   })
 

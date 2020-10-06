@@ -86,12 +86,16 @@ export const waitForCrossDomainMessages = async (
       'Messengers are not initialized. Please make sure to call initCrossDomainMessengers!'
     )
   }
-
+  console.log('were waiting w user:', signer.address)
   while (await l1CrossDomainMessenger.hasNextMessage()) {
-    await l1CrossDomainMessenger.relayNextMessage()
+    console.log('were relaying the next L1 Message w user:', signer.address)
+    const tx = await l1CrossDomainMessenger.relayNextMessage()
+    console.log('L1 tx:', tx)
   }
 
   while (await l2CrossDomainMessenger.hasNextMessage()) {
-    await l2CrossDomainMessenger.relayNextMessage()
+    console.log('were relaying the next L2 Message w user:', signer.address)
+    const tx = await l2CrossDomainMessenger.relayNextMessage()
+    console.log('L2 tx:', tx)
   }
 }

@@ -28,7 +28,7 @@ contract MockCrossDomainMessenger is ICrossDomainMessenger {
      * Contract Variables *
      **********************/
 
-    ReceivedMessage[] internal fullReceivedMessages;
+    ReceivedMessage[] public fullReceivedMessages;
     uint256 internal lastRelayedMessage;
     uint256 internal delay;
 

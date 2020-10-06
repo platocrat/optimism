@@ -27,12 +27,12 @@ export class Watcher {
     return this._getMessageHashesFromTx(false, l2TxHash)
   }
 
-  public onceL2Relay(msgHash: string, callback: Function) {
-    return this._onceRelay(false, msgHash, callback)
+  public getL2TransactionReceipt(l1ToL2MsgHash: string): Promise<any> {
+    return this._getLXTransactionReceipt(false, l1ToL2MsgHash)
   }
 
-  public onceL1Relay(msgHash: string, callback: Function) {
-    return this._onceRelay(true, msgHash, callback)
+  public getL1TransactionReceipt(l2ToL1MsgHash: string): Promise<any> {
+    return this._getLXTransactionReceipt(true, l2ToL1MsgHash)
   }
 
   private async _getMessageHashesFromTx(
@@ -50,7 +50,7 @@ export class Watcher {
     return filtered.map((log: any) => log.data)
   }
 
-  private _onceRelay(isL1: boolean, msgHash: string, callback: Function) {
+  private async _getLXTransactionReceipt(isL1: boolean, msgHash: string): Promise<any> {
     const layer = isL1 ? this.l1 : this.l2
     const filter = {
       address: layer.messengerAddress,
@@ -58,11 +58,13 @@ export class Watcher {
         ethers.utils.id(`Relayed${isL1 ? 'L2ToL1' : 'L1ToL2'}Message(bytes32)`),
       ],
     }
-
-    layer.provider.on(filter, (log: any) => {
-      if (log.data === msgHash) {
-        callback(log.transactionHash)
-      }
-    })
+    const prevLogs = await layer.provider.getLogs(filter)
+    console.log('prevlogs!', prevLogs)
+    // const matchedLogs = prevL
+    // layer.provider.on(filter, (log: any) => {
+    //   if (log.data === msgHash) {
+    //     callback(log.transactionHash)
+    //   }
+    // })
   }
 }
