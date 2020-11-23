@@ -1,6 +1,6 @@
 /* External Imports */
-import { ethers, providers, Wallet, Contract } from 'ethers-v5'
-import { defaultAccounts } from 'ethereum-waffle-v3'
+import { ethers, providers, Wallet, Contract } from 'ethers'
+import { defaultAccounts } from 'ethereum-waffle'
 import Ganache from 'ganache-core'
 
 /* Internal Imports */

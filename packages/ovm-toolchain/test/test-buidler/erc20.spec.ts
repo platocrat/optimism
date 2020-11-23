@@ -3,7 +3,7 @@ import { expect } from '../common/setup'
 /* External Imports */
 // tslint:disable-next-line
 const { ethers } = require('@nomiclabs/buidler')
-import { Contract, Signer } from 'ethers-v5'
+import { Contract, Signer } from 'ethers'
 
 describe('ERC20 smart contract', () => {
   let wallet1: Signer
