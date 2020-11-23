@@ -38,14 +38,6 @@ const providerV3 = new waffleV3.MockProvider({
 })
 ```
 
-Alternatively:
-
-```typescript
-import { MockProvider } from '@eth-optimism/ovm-toolchain/build/src/waffle/waffle-v2'
-
-const provider = new MockProvider(options)
-```
-
 Please refer to the [`waffle` docs](https://ethereum-waffle.readthedocs.io/en/latest/index.html) for more information.
 
 ### buidler
