@@ -242,6 +242,15 @@ describe('Message Relayer: basic tests', () => {
   })
 
   describe('basic test cases', () => {
+    // it.only ('should not allow an invalid rpc provider',
+    // async () => {
+    //   l1RpcProvider = new JsonRpcProvider('http://localhost:none')
+    //   expect (
+    //     await service.init()
+    //   ).to.be.an('error')
+    // }
+    // )
+
     it('should not detect a message before the fraud window expires', async () => {
       await OVM_L2CrossDomainMessenger.sendMessage(
         '0x0000000000000000000000000000000000000004',

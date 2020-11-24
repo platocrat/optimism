@@ -72,6 +72,43 @@ export class MessageRelayerService extends BaseService<MessageRelayerOptions> {
     this.lastFinalizedTxHeight = this.options.l2ChainStartingHeight || 0
     this.nextUnfinalizedTxHeight = this.options.l2ChainStartingHeight || 0
     this.blockOffset = this.options.blockOffset || 0
+
+    try {
+      await this._sanityChecks()
+    } catch (err) {
+      this.logger.error(`Sanity check failed: ${err}`)
+      throw err
+    }
+   }
+
+  private async _sanityChecks(): Promise<void> {
+
+    try {
+      await this.options.l1RpcProvider.detectNetwork()
+    } catch(err) {
+      throw err
+    }
+    try {
+      await this.options.l2RpcProvider.detectNetwork()
+    } catch(err) {
+      throw err
+    }
+
+    // TODO: quick check to make sure the provided addresses are correct
+
+    if (this.options.l2ChainStartingHeight < 0) {
+      throw "L2 Chain Starting Height must be positive"
+    }
+
+    // warnings
+    const filter = this.stateCommitmentChain.filters.StateBatchAppended()
+    const events = await this.stateCommitmentChain.queryFilter(filter)
+    if (events.length === 0) {
+      this.logger.info(`Warning: No events exist yet, no state commitment for the given height`)
+    }
+    if (this.pollingInterval < 15000 || this.pollingInterval > 60000) {
+       this.logger.info(`Warning: Polling interval should be greater than 15s or less than an hour`)
+     }
   }
 
   protected async _start(): Promise<void> {
@@ -232,16 +269,27 @@ export class MessageRelayerService extends BaseService<MessageRelayerOptions> {
         message.calldata + this.l2CrossDomainMessenger.address.slice(2)
       ) + '00'.repeat(32)
     )
-
-    // TODO: Complain if the proof doesn't exist.
-    const proof = await this.options.l2RpcProvider.send('eth_getProof', [
+    var proof
+    try {
+      proof = await this.options.l2RpcProvider.send('eth_getProof', [
       this.l2ToL1MessagePasser.address,
       [messageSlot],
       BigNumber.from(message.height + this.blockOffset).toHexString(),
-    ])
+      ])
+      if (proof === undefined) throw "No proof found"
+    } catch (err) {
+      this.logger.error(err)
+      return
+    }
 
-    // TODO: Complain if the batch doesn't exist.
-    const batch = await this._getStateBatchHeader(message.height)
+    var batch
+    try {
+      batch = await this._getStateBatchHeader(message.height)
+      if (batch == undefined) throw "No events found in state batch header"
+    } catch (err) {
+      this.logger.error(err)
+      return
+    }
 
     const elements = []
     for (
