@@ -5,7 +5,7 @@ import { Contract } from 'ethers'
 
 /* Internal Imports */
 import { L2Block, Bytes32 } from '..'
-import { RollupInfo, Range, BatchSubmitter, BLOCK_OFFSET } from '.'
+import { RollupInfo, Range, BatchSubmitter, BLOCK_OFFSET, TX_PARAMS } from '.'
 
 export class StateBatchSubmitter extends BatchSubmitter {
   // TODO: Change this so that we calculate start = scc.totalElements() and end = ctc.totalElements()!
@@ -104,7 +104,7 @@ export class StateBatchSubmitter extends BatchSubmitter {
     }
     const offsetStartsAtIndex = startBlock - BLOCK_OFFSET // TODO: Remove BLOCK_OFFSET by adding a tx to Geth's genesis
     return this._submitAndLogTx(
-      this.chainContract.appendStateBatch(batch, offsetStartsAtIndex),
+      this.chainContract.appendStateBatch(batch, offsetStartsAtIndex, TX_PARAMS),
       'Submitted state root batch!'
     )
   }

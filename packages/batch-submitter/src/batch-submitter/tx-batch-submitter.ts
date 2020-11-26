@@ -31,7 +31,7 @@ import {
   QueueOrigin,
   queueOriginPlainText,
 } from '..'
-import { RollupInfo, Range, BatchSubmitter, BLOCK_OFFSET } from '.'
+import { RollupInfo, Range, BatchSubmitter, BLOCK_OFFSET, TX_PARAMS } from '.'
 
 export class TransactionBatchSubmitter extends BatchSubmitter {
   protected chainContract: CanonicalTransactionChainContract
@@ -85,7 +85,7 @@ export class TransactionBatchSubmitter extends BatchSubmitter {
       )
       // Empty the queue with a huge `appendQueueBatch(..)` call
       return this._submitAndLogTx(
-        this.chainContract.appendQueueBatch(99999999),
+        this.chainContract.appendQueueBatch(99999999, TX_PARAMS),
         'Cleared queue!'
       )
     }
@@ -151,7 +151,7 @@ export class TransactionBatchSubmitter extends BatchSubmitter {
     )
     this.log.debug('Submitting batch. Tx calldata:', batchParams)
     return this._submitAndLogTx(
-      this.chainContract.appendSequencerBatch(batchParams),
+      this.chainContract.appendSequencerBatch(batchParams, TX_PARAMS.gasLimit),
       'Submitted batch!'
     )
   }
