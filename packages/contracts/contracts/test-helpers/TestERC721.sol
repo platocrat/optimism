@@ -31,21 +31,26 @@ contract TestERC721 {
         return _tokenOwners.contains(tokenId);
     }
 
-    function _mint(address to, uint256 tokenId) public {
+    function mint(address to, uint256 tokenId) public {
         require(!_exists(tokenId), "ERC721: token already minted");
         _holderTokens[to].add(tokenId);
         _tokenOwners.set(tokenId, to);
         emit Transfer(address(0), to, tokenId);
     }
 
-    function _approve(address to, uint256 tokenId) private {
-        _tokenApprovals[tokenId] = to;
-        emit Approval(ERC721.ownerOf(tokenId), to, tokenId); // internal owner
+    function ownerOf(uint256 tokenId) public view returns (address) {
+        (bool exists, address owner) = _tokenOwners.tryGet(tokenId);
+        require(exists, "ERC721: owner query for non existent token");
+        return owner;
     }
 
+    function _approve(address to, uint256 tokenId) private {
+        _tokenApprovals[tokenId] = to;
+        emit Approval(ownerOf(tokenId), to, tokenId); // internal owner
+    }
 
     function _transfer(address from, address to, uint256 tokenId) internal virtual {
-        require(ERC721.ownerOf(tokenId) == from, "ERC721: transfer of token that is not own"); // internal owner
+        require(ownerOf(tokenId) == from, "ERC721: transfer of token that is not own"); // internal owner
         _beforeTokenTransfer(from, to, tokenId);
         // Clear approvals from the previous owner
         _approve(address(0), tokenId);
@@ -61,13 +66,13 @@ contract TestERC721 {
     }
 
     function transfer(address to, uint256 tokenId) external returns (bool) {
-        _transfer(to, tokenId);
+        _transfer(_msgSender(), to, tokenId);
         return true;
     }
 
     function _isApprovedOrOwner(address spender, uint256 tokenId) internal view virtual returns (bool) {
-        address owner = ERC721.ownerOf(tokenId);
-        return (spender == owner || getApproved(tokenId) == spender || ERC721.isApprovedForAll(owner, spender));
+        address owner = ownerOf(tokenId);
+        return (spender == owner || getApproved(tokenId) == spender || isApprovedForAll(owner, spender));
     }
 
     function isApprovedForAll(address owner, address operator) public view virtual returns (bool) {
@@ -86,6 +91,10 @@ contract TestERC721 {
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual { }
+
+    function _msgSender() internal view virtual returns (address) {
+        return msg.sender;
+    }
 }
 
 

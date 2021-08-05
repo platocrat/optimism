@@ -2,9 +2,8 @@
 pragma solidity >=0.5.16 <0.8.0;
 
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import { IERC165 } from "@openzeppelin/contracts/introspection/IERC165.sol";
 
-interface IL2StandardERC721 is IERC721, IERC165 {
+interface IL2StandardERC721 is IERC721 {
     function l1Token() external returns (address);
 
     function mint(address _to, uint256 _tokenId) external;

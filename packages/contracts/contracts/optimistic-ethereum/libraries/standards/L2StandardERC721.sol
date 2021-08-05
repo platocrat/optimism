@@ -2,8 +2,10 @@
 pragma solidity >=0.5.16 <0.8.0;
 
 import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import { IERC165 } from "@openzeppelin/contracts/introspection/IERC165.sol";
+import { ERC165 } from "@openzeppelin/contracts/introspection/ERC165.sol";
 
-import "./IL2StandardERC20.sol";
+import "./IL2StandardERC721.sol";
 
 contract L2StandardERC721 is IL2StandardERC721, ERC721 {
     address public override l1Token;
@@ -31,7 +33,7 @@ contract L2StandardERC721 is IL2StandardERC721, ERC721 {
         _;
     }
 
-    function supportsInterface(bytes4 _interfaceId) public override pure returns (bool) {
+    function supportsInterface(bytes4 _interfaceId) public override(IERC165, ERC165) pure returns (bool) {
         bytes4 firstSupportedInterface = bytes4(keccak256("supportsInterface(bytes4)")); // ERC165
         bytes4 secondSupportedInterface = IL2StandardERC721.l1Token.selector
             ^ IL2StandardERC721.mint.selector
@@ -46,7 +48,7 @@ contract L2StandardERC721 is IL2StandardERC721, ERC721 {
     }
 
     function burn(address _from, uint256 _tokenId) public virtual override onlyL2Bridge {
-        _burn(_from, _tokenId);
+        _burn(_tokenId);
 
         emit Burn(_from, _tokenId);
     }
