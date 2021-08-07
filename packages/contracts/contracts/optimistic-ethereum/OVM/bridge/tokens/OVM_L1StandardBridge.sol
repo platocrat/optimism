@@ -6,8 +6,11 @@ pragma experimental ABIEncoderV2;
 /* Interface Imports */
 import { iOVM_L1StandardBridge } from "../../../iOVM/bridge/tokens/iOVM_L1StandardBridge.sol";
 import { iOVM_L1ERC20Bridge } from "../../../iOVM/bridge/tokens/iOVM_L1ERC20Bridge.sol";
+import { iOVM_L1ERC721Bridge } from "../../../iOVM/bridge/tokens/iOVM_L1ERC721Bridge.sol";
 import { iOVM_L2ERC20Bridge } from "../../../iOVM/bridge/tokens/iOVM_L2ERC20Bridge.sol";
+import { iOVM_L2ERC721Bridge } from "../../../iOVM/bridge/tokens/iOVM_L2ERC721Bridge.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 /* Library Imports */
 import { OVM_CrossDomainEnabled } from "../../../libraries/bridge/OVM_CrossDomainEnabled.sol";
@@ -18,7 +21,7 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 /**
  * @title OVM_L1StandardBridge
- * @dev The L1 ETH and ERC20 Bridge is a contract which stores deposited L1 funds and standard
+ * @dev The L1 ETH, ERC20, and ERC721 Bridge is a contract which stores deposited L1 funds and standard
  * tokens that are in use on L2. It synchronizes a corresponding L2 Bridge, informing it of deposits
  * and listening to it for newly finalized withdrawals.
  *
@@ -271,6 +274,100 @@ contract OVM_L1StandardBridge is iOVM_L1StandardBridge, OVM_CrossDomainEnabled {
         emit ERC20DepositInitiated(_l1Token, _l2Token, _from, _to, _amount, _data);
     }
 
+    /**
+     * @inheritdoc iOVM_L1ERC721Bridge
+     */
+    function depositERC721(
+        address _l1Token,
+        address _l2Token,
+        uint256 _tokenId,
+        uint32 _l2Gas,
+        bytes calldata _data
+    )
+        external
+        override
+        virtual
+        onlyEOA()
+    {
+        _initiateERC721Deposit(_l1Token, _l2Token, msg.sender, msg.sender, _tokenId, _l2Gas, _data);
+    }
+
+    /**
+     * @inheritdoc iOVM_L1ERC721Bridge
+     */
+    function depositERC721To (
+        address _l1Token,
+        address _l2Token,
+        address _to,
+        uint256 _tokenId,
+        uint32 _l2Gas,
+        bytes calldata _data
+    )
+        external
+        override
+        virtual
+    {
+        _initiateERC721Deposit(_l1Token, _l2Token, msg.sender, _to, _tokenId, _l2Gas, _data);
+    }
+
+    /**
+     * @dev Performs the logic for deposits by informing the L2 Deposited ERC721 Token
+     * contract of the deposit and calling a handler to lock the L1 funds (e.g. safeTransferFrom).
+     *
+     * @param _l1Token Address of the L1 ERC721 we are depositing.
+     * @param _l2Token Address of the L1 respective L2 ERC721.
+     * @param _from Account to pull the deposit from on L1.
+     * @param _to Account to give the deposit to on L2.
+     * @param _tokenId The NFT to deposit.
+     * @param _l2Gas Gas limit required to complete the deposit on L2.
+     * @param _data Optional data to forward to L2. This data is provided
+     *        solely as a convenience for external contracts. Aside from enforcing a maximum
+     *        length, these contracts provide no guarantees about its content.
+     */
+    function _initiateERC721Deposit(
+        address _l1Token,
+        address _l2Token,
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        uint32 _l2Gas,
+        bytes calldata _data
+    )
+        internal
+    {
+        // When a deposit is initiated on L1, the L1 Bridge transfers the funds to itself for future
+        // withdrawals. safeTransferFrom also checks if the contract has code, so this will fail if
+        // _from is an EOA or address(0).
+        IERC721(_l1Token).safeTransferFrom(
+            _from,
+            address(this),
+            _tokenId
+        );
+
+        // Construct calldata for _l2Token.finalizeERC721Deposit(_to, _amount)
+        bytes memory message = abi.encodeWithSelector(
+            iOVM_L2ERC721Bridge.finalizeERC721Deposit.selector,
+            _l1Token,
+            _l2Token,
+            _from,
+            _to,
+            _tokenId,
+            _data
+        );
+
+        // Send calldata into L2
+        sendCrossDomainMessage(
+            l2TokenBridge,
+            _l2Gas,
+            message
+        );
+
+        // deposits[_l1Token][_l2Token] = deposits[_l1Token][_l2Token].add(_amount);
+
+        emit ERC721DepositInitiated(_l1Token, _l2Token, _from, _to, _tokenId, _data);
+    }
+
+
     /*************************
      * Cross-chain Functions *
      *************************/
@@ -315,6 +412,30 @@ contract OVM_L1StandardBridge is iOVM_L1StandardBridge, OVM_CrossDomainEnabled {
         IERC20(_l1Token).safeTransfer(_to, _amount);
 
         emit ERC20WithdrawalFinalized(_l1Token, _l2Token, _from, _to, _amount, _data);
+    }
+
+
+    /**
+     * @inheritdoc iOVM_L1ERC721Bridge
+     */
+    function finalizeERC721Withdrawal(
+        address _l1Token,
+        address _l2Token,
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        bytes calldata _data
+    )
+        external
+        override
+        onlyFromCrossDomainAccount(l2TokenBridge)
+    {
+        // deposits[_l1Token][_l2Token] = deposits[_l1Token][_l2Token].sub(_amount);
+
+        // When a withdrawal is finalized on L1, the L1 Bridge transfers the funds to the withdrawer
+        IERC721(_l1Token).safeTransferFrom(address(this), _to, _tokenId);
+
+        emit ERC721WithdrawalFinalized(_l1Token, _l2Token, _from, _to, _tokenId, _data);
     }
 
     /*****************************
