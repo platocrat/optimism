@@ -19,6 +19,9 @@ import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
+/* Contract Imports */
+import { ERC721Holder } from "@openzeppelin/contracts/token/ERC721/ERC721Holder.sol";
+
 /**
  * @title OVM_L1StandardBridge
  * @dev The L1 ETH, ERC20, and ERC721 Bridge is a contract which stores deposited L1 funds and standard
@@ -28,7 +31,7 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
  * Compiler used: solc
  * Runtime target: EVM
  */
-contract OVM_L1StandardBridge is iOVM_L1StandardBridge, OVM_CrossDomainEnabled {
+contract OVM_L1StandardBridge is iOVM_L1StandardBridge, OVM_CrossDomainEnabled, ERC721Holder {
     using SafeMath for uint;
     using SafeERC20 for IERC20;
 
@@ -336,8 +339,8 @@ contract OVM_L1StandardBridge is iOVM_L1StandardBridge, OVM_CrossDomainEnabled {
         internal
     {
         // When a deposit is initiated on L1, the L1 Bridge transfers the funds to itself for future
-        // withdrawals. safeTransferFrom also checks if the contract has code, so this will fail if
-        // _from is an EOA or address(0).
+        // withdrawals. safeTransferFrom also checks if this contract knows how to handle ERC721, which
+        // it does.
         IERC721(_l1Token).safeTransferFrom(
             _from,
             address(this),
@@ -362,7 +365,7 @@ contract OVM_L1StandardBridge is iOVM_L1StandardBridge, OVM_CrossDomainEnabled {
             message
         );
 
-        // deposits[_l1Token][_l2Token] = deposits[_l1Token][_l2Token].add(_amount);
+        deposits[_l1Token][_l2Token] = deposits[_l1Token][_l2Token].add(1);
 
         emit ERC721DepositInitiated(_l1Token, _l2Token, _from, _to, _tokenId, _data);
     }
@@ -430,7 +433,7 @@ contract OVM_L1StandardBridge is iOVM_L1StandardBridge, OVM_CrossDomainEnabled {
         override
         onlyFromCrossDomainAccount(l2TokenBridge)
     {
-        // deposits[_l1Token][_l2Token] = deposits[_l1Token][_l2Token].sub(_amount);
+        deposits[_l1Token][_l2Token] = deposits[_l1Token][_l2Token].sub(1);
 
         // When a withdrawal is finalized on L1, the L1 Bridge transfers the funds to the withdrawer
         IERC721(_l1Token).safeTransferFrom(address(this), _to, _tokenId);
